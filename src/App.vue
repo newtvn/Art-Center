@@ -1,7 +1,16 @@
+<script setup>
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import bgImage from './assets/_ (78).jpeg'
+</script>
+
 <template>
   <div class="relative min-h-screen flex flex-col font-sans">
-    <!-- Background Grain -->
-    <div class="bg-grain fixed inset-0 z-0"></div>
+    <!-- Background -->
+    <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat" 
+         :style="{ backgroundImage: `url('${bgImage}')` }">
+         <div class="absolute inset-0 bg-white/80 backdrop-blur-3xl"></div> 
+    </div>
 
     <!-- Navigation -->
     <nav class="fixed top-8 left-1/2 -translate-x-1/2 z-50 glass px-10 py-5 rounded-full shadow-2xl flex gap-8 md:gap-12 text-xs font-bold uppercase tracking-widest whitespace-nowrap">
