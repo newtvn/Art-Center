@@ -3,13 +3,21 @@ export const artists = [
         name: 'Elias Thorne',
         photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400',
         specialty: 'Brutalist Sculpture',
-        longBio: 'Elias Thorne has spent two decades exploring the relationship between raw concrete and the fragility of human memory. His work is held in permanent collections across Zurich and Tokyo.'
+        longBio: 'Elias Thorne has spent two decades exploring the relationship between raw concrete and the fragility of human memory. His work is held in permanent collections across Zurich and Tokyo.',
+        socials: {
+            instagram: 'https://instagram.com',
+            website: 'https://eliasthorne.com'
+        }
     },
     {
         name: 'Sola Jung',
         photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400',
         specialty: 'Light Installation',
-        longBio: 'Jung uses refractive glass and LED arrays to create spaces that breathe. Her work is often described as "architecture for the soul," focusing on the void between objects.'
+        longBio: 'Jung uses refractive glass and LED arrays to create spaces that breathe. Her work is often described as "architecture for the soul," focusing on the void between objects.',
+        socials: {
+            instagram: 'https://instagram.com',
+            website: 'https://solajung.studio'
+        }
     }
 ];
 
