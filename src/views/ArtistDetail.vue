@@ -1,21 +1,47 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { artists, artworks } from '../data'
+import { supabase } from '../lib/supabaseClient'
 
 const route = useRoute()
 const router = useRouter()
+const artist = ref(null)
+const artistWorks = ref([])
+const loading = ref(true)
 
 // Decode name parameter to handle spaces
 const artistName = computed(() => {
     return route.params.name ? decodeURIComponent(route.params.name) : ''
 })
 
-const artist = computed(() => artists.find(a => a.name === artistName.value))
-const artistWorks = computed(() => artworks.filter(a => a.author === artistName.value))
+const fetchData = async () => {
+    loading.value = true
+    // 1. Fetch Artist by Name
+    const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('*')
+        .eq('name', artistName.value)
+        .single()
+    
+    if (artistData) {
+        artist.value = artistData
+        
+        // 2. Fetch Works by Artist ID
+        const { data: worksData } = await supabase
+            .from('artworks')
+            .select('*')
+            .eq('artist_id', artistData.id)
+            
+        if (worksData) artistWorks.value = worksData
+    }
+    loading.value = false
+}
+
+onMounted(fetchData)
+watch(artistName, fetchData)
 
 const openArt = (art) => {
-    router.push({ name: 'art-detail', params: { id: art.id } })
+    router.push({ name: 'art-detail', params: { id: art.id } }) // Using UUID
 }
 
 const back = () => router.push({ name: 'artists' })
@@ -36,7 +62,7 @@ const back = () => router.push({ name: 'artists' })
         <div class="w-full md:w-2/3 pt-4">
             <h1 v-reveal="{ delay: 0.1 }" class="text-6xl md:text-8xl font-bold mb-8 tracking-tighter leading-none">{{artist.name}}</h1>
             <span v-reveal="{ delay: 0.2 }" class="text-[10px] font-bold uppercase border border-zinc-800 px-4 py-2 rounded-full mb-8 inline-block text-zinc-800">{{artist.specialty}}</span>
-            <p v-reveal="{ delay: 0.3 }" class="text-xl md:text-2xl leading-relaxed text-zinc-800 font-light max-w-2xl">{{artist.longBio}}</p>
+            <p v-reveal="{ delay: 0.3 }" class="text-xl md:text-2xl leading-relaxed text-zinc-800 font-light max-w-2xl">{{artist.long_bio}}</p>
             
             <div v-reveal="{ delay: 0.4 }" class="flex gap-5 mt-8 items-center cursor-pointer relative z-20">
                 <a v-if="artist.socials?.instagram" :href="artist.socials.instagram" target="_blank" class="w-10 h-10 border border-zinc-800 rounded-full flex items-center justify-center text-zinc-800 hover:bg-zinc-900 hover:text-white transition duration-300">
@@ -62,7 +88,7 @@ const back = () => router.push({ name: 'artists' })
                 <div class="flex justify-between items-start px-2">
                     <div>
                         <h3 class="text-lg font-bold">{{art.title}}</h3>
-                        <p class="text-zinc-400 text-sm">{{art.author}}</p>
+                        <p class="text-zinc-400 text-sm">{{artist.name}}</p>
                     </div>
                     <p class="font-medium text-sm">${{art.price}}</p>
                 </div>

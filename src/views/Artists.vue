@@ -1,10 +1,23 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { artists } from '../data'
+import { supabase } from '../lib/supabaseClient'
 
 const router = useRouter()
+const artists = ref([])
+const loading = ref(true)
+
+onMounted(async () => {
+    const { data, error } = await supabase
+        .from('artists')
+        .select('*')
+    
+    if (data) artists.value = data
+    loading.value = false
+})
 
 const openArtist = (artist) => {
+    // Navigate using name for pretty URLs, ensuring we decode/encode properly
     router.push({ name: 'artist-detail', params: { name: artist.name } })
 }
 </script>
@@ -22,7 +35,7 @@ const openArtist = (artist) => {
             </div>
             <div class="text-center md:text-left group-hover:translate-x-4 transition duration-500">
                 <h3 class="text-3xl font-bold mb-4">{{artist.name}}</h3>
-                <p class="text-zinc-500 leading-relaxed text-lg mb-6">{{artist.longBio}}</p>
+                <p class="text-zinc-500 leading-relaxed text-lg mb-6">{{artist.long_bio}}</p>
                 <div class="flex gap-4 justify-center md:justify-start">
                     <span class="text-[10px] font-bold uppercase border border-zinc-200 px-3 py-1 rounded-full">{{artist.specialty}}</span>
                 </div>

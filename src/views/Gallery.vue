@@ -1,14 +1,27 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { artworks, categories } from '../data'
+import { categories } from '../data'
+import { supabase } from '../lib/supabaseClient'
 
 const router = useRouter()
 const filter = ref('All')
+const artworks = ref([])
+const loading = ref(true)
+
+onMounted(async () => {
+    // Fetch artworks and join with artists to get author name
+    const { data, error } = await supabase
+        .from('artworks')
+        .select('*, artists(name)')
+    
+    if (data) artworks.value = data
+    loading.value = false
+})
 
 const filteredArt = computed(() => {
-    if (filter.value === 'All') return artworks;
-    return artworks.filter(a => a.category === filter.value);
+    if (filter.value === 'All') return artworks.value;
+    return artworks.value.filter(a => a.category === filter.value);
 });
 
 const openArt = (art) => {
@@ -39,7 +52,7 @@ const openArt = (art) => {
             <div class="flex justify-between items-start px-2">
                 <div>
                     <h3 class="text-lg font-bold">{{art.title}}</h3>
-                    <p class="text-zinc-400 text-sm">{{art.author}}</p>
+                    <p class="text-zinc-400 text-sm">{{art.artists?.name}}</p>
                 </div>
                 <p class="font-medium text-sm">${{art.price}}</p>
             </div>

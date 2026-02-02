@@ -1,14 +1,24 @@
 <script setup>
-import { computed, ref, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { artworks } from '../data'
+import { supabase } from '../lib/supabaseClient'
 
 const route = useRoute()
 const router = useRouter()
-const id = computed(() => parseInt(route.params.id))
-const art = computed(() => artworks.find(a => a.id === id.value))
+const id = computed(() => route.params.id) // ID is now UUID string
+const art = ref(null)
 
 const showVisualizer = ref(false)
+
+onMounted(async () => {
+    const { data } = await supabase
+        .from('artworks')
+        .select('*, artists(name)')
+        .eq('id', id.value)
+        .single()
+        
+    if (data) art.value = data
+})
 const wallColor = ref('#f4f4f5')
 const colors = ['#f4f4f5', '#18181b', '#d4d4d8', '#fafaf9', '#fef2f2', '#ecfeff']
 
@@ -92,13 +102,14 @@ onUnmounted(() => {
                         <p class="text-xl leading-relaxed text-zinc-600">{{art.longHistory}}</p>
                     </section>
 
-                    <section v-reveal="{ delay: 0.2 }" class="bg-zinc-900 text-white p-10 rounded-apple relative overflow-hidden group">
+                    <p v-reveal="{ delay: 0.2 }" class="text-zinc-500 uppercase tracking-widest text-xs mb-8">{{art.artists?.name}}</p>
+                    <section class="bg-zinc-900 text-white p-10 rounded-apple relative overflow-hidden group">
                         <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition duration-500"></div>
                         <h4 class="text-xs font-bold uppercase mb-6 opacity-50 tracking-widest">Artist's Inspiration</h4>
                         <p class="text-2xl font-light italic leading-snug">"{{art.inspirationText}}"</p>
                         <div class="mt-8 flex items-center gap-4">
                             <img :src="art.authorImg" class="w-12 h-12 rounded-full object-cover grayscale">
-                            <p class="text-sm font-bold">{{art.author}}</p>
+                            <p class="text-sm font-bold">{{art.artists?.name}}</p>
                         </div>
                     </section>
 
