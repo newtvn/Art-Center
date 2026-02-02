@@ -101,100 +101,100 @@ const uploadArt = async () => {
 </script>
 
 <template>
-    <div class="min-h-screen p-6 md:p-12 font-mono text-zinc-900 relative z-20">
+    <div class="min-h-screen p-6 md:p-12 font-sans text-zinc-900 relative z-20">
         <!-- Header -->
-        <header class="flex justify-between items-end mb-12 border-b border-black pb-4">
+        <header class="flex justify-between items-end mb-12 border-b border-zinc-200 pb-6">
             <div>
                 <h1 class="text-xs font-bold uppercase tracking-[0.4em] mb-2">Inventory Registry</h1>
-                <p class="text-[10px] opacity-60">Archive and manage exhibition pieces</p>
+                <p class="text-[10px] uppercase tracking-widest text-zinc-400">Archive and manage exhibition pieces</p>
             </div>
-            <button @click="router.push('/admin/dashboard')" class="text-[10px] uppercase font-bold hover:underline">Back to Ledger</button>
+            <button @click="router.push('/admin/dashboard')" class="text-[10px] uppercase font-bold tracking-widest hover:text-zinc-500 transition">Back to Ledger</button>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-24">
             <!-- Sidebar: List -->
-            <div class="lg:col-span-1 border-r border-black pr-12 min-h-[50vh]">
+            <div class="lg:col-span-1 border-r border-zinc-200 pr-12 min-h-[50vh]">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-xs font-bold uppercase tracking-widest">Cataloged Works</h2>
-                    <button @click="isEditing = true" class="text-[10px] bg-black text-[#E8E4D9] px-3 py-1 uppercase hover:opacity-80">+ New Entry</button>
+                    <button @click="isEditing = true" class="text-[10px] bg-black text-white px-4 py-2 rounded-full uppercase font-bold tracking-wider hover:bg-zinc-800 transition shadow-lg">+ New Entry</button>
                 </div>
                 
-                <div v-if="loading" class="text-[10px] opacity-50">Scanning archives...</div>
+                <div v-if="loading" class="text-[10px] opacity-50 font-bold uppercase tracking-widest text-center mt-10">Scanning archives...</div>
                 
                 <ul v-else class="space-y-4">
-                    <li v-for="art in artworks" :key="art.id" class="group cursor-pointer hover:bg-black/5 p-2 -mx-2 transition">
-                        <div class="flex justify-between items-baseline">
+                    <li v-for="art in artworks" :key="art.id" class="group cursor-pointer hover:bg-zinc-50 p-4 -mx-4 rounded-xl transition duration-300">
+                        <div class="flex justify-between items-baseline mb-1">
                             <span class="font-bold text-sm">{{ art.title }}</span>
-                            <span class="text-[10px] opacity-50">{{ art.year }}</span>
+                            <span class="text-[10px] text-zinc-400 font-bold">{{ art.year }}</span>
                         </div>
-                        <div class="text-[10px] opacity-70 mt-1 flex justify-between">
-                            <span>{{ art.category }}</span>
+                        <div class="text-[10px] text-zinc-500 flex justify-between">
+                            <span class="uppercase tracking-wider">{{ art.category }}</span>
                             <span>${{ art.price }}</span>
                         </div>
                     </li>
-                    <li v-if="artworks.length === 0" class="text-[10px] opacity-40 italic">No works found in the ledger.</li>
+                    <li v-if="artworks.length === 0" class="text-[10px] opacity-40 italic text-center py-10">No works found in the ledger.</li>
                 </ul>
             </div>
 
             <!-- Main: Editor -->
             <div class="lg:col-span-2 pl-0 lg:pl-12">
                 <div v-if="isEditing" class="max-w-xl">
-                    <h2 class="text-xs font-bold uppercase tracking-widest mb-8 border-b border-black/20 pb-2">New Entry Form</h2>
+                    <h2 class="text-xs font-bold uppercase tracking-widest mb-10 text-zinc-400">New Entry Form</h2>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
                         <!-- Image Upload -->
-                        <div class="aspect-[3/4] border-2 border-dashed border-black/30 flex flex-col items-center justify-center relative hover:bg-black/5 transition cursor-pointer group">
+                        <div class="aspect-[3/4] bg-zinc-50 border border-zinc-100 rounded-apple flex flex-col items-center justify-center relative hover:scale-[1.02] transition duration-500 cursor-pointer group shadow-xl overflow-hidden">
                             <input type="file" @change="handleImageSelect" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" />
-                            <img v-if="imagePreview" :src="imagePreview" class="absolute inset-0 w-full h-full object-cover p-2 pointer-events-none" />
-                            <div v-else class="text-center p-4">
-                                <span class="text-2xl mb-2 block group-hover:scale-110 transition">+</span>
+                            <img v-if="imagePreview" :src="imagePreview" class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                            <div v-else class="text-center p-4 opacity-40 group-hover:opacity-100 transition">
+                                <span class="text-4xl mb-4 block font-light">+</span>
                                 <span class="text-[10px] uppercase font-bold tracking-widest">Attach Visual</span>
                             </div>
                         </div>
 
                         <!-- Data Fields -->
-                        <div class="flex flex-col gap-6">
+                        <div class="flex flex-col gap-8">
                             <div class="group">
-                                <label class="block text-[10px] uppercase tracking-widest mb-1 opacity-60">Title</label>
-                                <input v-model="newArt.title" type="text" class="w-full bg-transparent border-b border-black py-1 outline-none font-bold text-sm placeholder-black/20 focus:border-black transition-colors" placeholder="Untitled No. 5">
+                                <label class="block text-[10px] uppercase tracking-widest mb-2 text-zinc-400 font-bold">Title</label>
+                                <input v-model="newArt.title" type="text" class="w-full bg-transparent border-b border-zinc-200 py-2 outline-none font-bold text-lg placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="Untitled No. 5">
                             </div>
                             
                             <div class="group">
-                                <label class="block text-[10px] uppercase tracking-widest mb-1 opacity-60">Creation Year</label>
-                                <input v-model="newArt.year" type="text" class="w-full bg-transparent border-b border-black py-1 outline-none font-bold text-sm placeholder-black/20 focus:border-black transition-colors" placeholder="2026">
+                                <label class="block text-[10px] uppercase tracking-widest mb-2 text-zinc-400 font-bold">Creation Year</label>
+                                <input v-model="newArt.year" type="text" class="w-full bg-transparent border-b border-zinc-200 py-2 outline-none font-bold text-sm placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="2026">
                             </div>
 
                             <div class="group">
-                                <label class="block text-[10px] uppercase tracking-widest mb-1 opacity-60">Category</label>
-                                <select v-model="newArt.category" class="w-full bg-transparent border-b border-black py-1 outline-none font-bold text-sm text-zinc-900">
+                                <label class="block text-[10px] uppercase tracking-widest mb-2 text-zinc-400 font-bold">Category</label>
+                                <select v-model="newArt.category" class="w-full bg-transparent border-b border-zinc-200 py-2 outline-none font-bold text-sm text-zinc-900 cursor-pointer">
                                     <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
                                 </select>
                             </div>
 
-                            <div class="flex gap-4">
+                            <div class="flex gap-6">
                                 <div class="group w-1/2">
-                                    <label class="block text-[10px] uppercase tracking-widest mb-1 opacity-60">Value (USD)</label>
-                                    <input v-model="newArt.price" type="number" class="w-full bg-transparent border-b border-black py-1 outline-none font-bold text-sm placeholder-black/20 focus:border-black transition-colors" placeholder="4500">
+                                    <label class="block text-[10px] uppercase tracking-widest mb-2 text-zinc-400 font-bold">Value (USD)</label>
+                                    <input v-model="newArt.price" type="number" class="w-full bg-transparent border-b border-zinc-200 py-2 outline-none font-bold text-sm placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="4500">
                                 </div>
                                 <div class="group w-1/2">
-                                    <label class="block text-[10px] uppercase tracking-widest mb-1 opacity-60">Dimensions</label>
-                                    <input v-model="newArt.dimensions" type="text" class="w-full bg-transparent border-b border-black py-1 outline-none font-bold text-sm placeholder-black/20 focus:border-black transition-colors" placeholder="40x60cm">
+                                    <label class="block text-[10px] uppercase tracking-widest mb-2 text-zinc-400 font-bold">Dimensions</label>
+                                    <input v-model="newArt.dimensions" type="text" class="w-full bg-transparent border-b border-zinc-200 py-2 outline-none font-bold text-sm placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="40x60cm">
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-end gap-4 mt-12 border-t border-black pt-6">
-                        <button @click="isEditing = false" class="text-[10px] uppercase font-bold hover:opacity-60 px-4 py-2">Discard</button>
-                        <button @click="uploadArt" :disabled="uploading" class="bg-black text-[#E8E4D9] px-6 py-2 text-[10px] uppercase font-bold tracking-widest hover:opacity-80 disabled:opacity-50">
+                    <div class="flex justify-end gap-6 mt-12 border-t border-zinc-100 pt-8">
+                        <button @click="isEditing = false" class="text-[10px] uppercase font-bold text-zinc-400 hover:text-red-500 px-4 py-3 transition">Discard</button>
+                        <button @click="uploadArt" :disabled="uploading" class="bg-black text-white px-8 py-3 rounded-full text-[10px] uppercase font-bold tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-lg hover:scale-105 transition-all">
                             {{ uploading ? 'Archiving...' : 'Stamp & Save' }}
                         </button>
                     </div>
                 </div>
 
-                <div v-else class="h-full flex flex-col items-center justify-center opacity-40 min-h-[40vh]">
-                    <p class="text-[10px] uppercase tracking-widest mb-2">Registry Closed</p>
-                    <p class="text-[10px]">Select "New Entry" to open the ledger.</p>
+                <div v-else class="h-full flex flex-col items-center justify-center opacity-30 min-h-[40vh]">
+                    <p class="text-[10px] uppercase tracking-widest mb-4 font-bold">Registry Closed</p>
+                    <p class="text-[10px]">Select "New Entry" on the left to open the ledger.</p>
                 </div>
             </div>
         </div>
