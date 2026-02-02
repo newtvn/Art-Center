@@ -18,12 +18,12 @@ const openArt = (art) => {
 
 <template>
   <section class="pt-40 px-6 max-w-7xl mx-auto w-full pb-20">
-    <div class="flex flex-col md:flex-row justify-between items-baseline mb-20 border-b border-zinc-100 pb-10">
-        <h2 class="text-5xl font-bold tracking-tight">Current Collection</h2>
-        <div class="flex gap-4 mt-6 md:mt-0">
+    <div class="flex flex-col md:flex-row justify-between items-baseline mb-12 md:mb-20 border-b border-zinc-100 pb-10">
+        <h2 class="text-4xl md:text-5xl font-bold tracking-tight">Current Collection</h2>
+        <div class="flex gap-4 mt-6 md:mt-0 w-full md:w-auto overflow-x-auto no-scrollbar pb-2 md:pb-0">
             <button v-for="c in categories" :key="c" @click="filter = c" 
-                    :class="filter === c ? 'bg-black text-white' : 'text-zinc-400'"
-                    class="text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full transition">
+                    :class="filter === c ? 'bg-black text-white' : 'text-zinc-500 bg-white/50'"
+                    class="text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full transition whitespace-nowrap flex-shrink-0 border border-transparent hover:border-zinc-200">
                 {{c}}
             </button>
         </div>
