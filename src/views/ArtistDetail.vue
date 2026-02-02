@@ -44,6 +44,10 @@ const openArt = (art) => {
     router.push({ name: 'art-detail', params: { id: art.id } }) // Using UUID
 }
 
+const handleArtistImageError = (e) => {
+    e.target.src = 'https://images.unsplash.com/photo-1544986181-421710baa721?q=80&w=400' // Fallback minimalist portrait
+}
+
 const back = () => router.push({ name: 'artists' })
 </script>
 
@@ -56,7 +60,7 @@ const back = () => router.push({ name: 'artists' })
     <div class="flex flex-col md:flex-row gap-12 md:gap-20 items-start mb-24">
         <div v-reveal class="w-full md:w-1/3">
              <div class="aspect-[3/4] overflow-hidden rounded-apple shadow-2xl">
-                <img :src="artist.photo" class="w-full h-full object-cover grayscale hover:grayscale-0 transition duration-700">
+                <img :src="artist.photo" @error="handleArtistImageError" class="w-full h-full object-cover grayscale hover:grayscale-0 transition duration-700">
              </div>
         </div>
         <div class="w-full md:w-2/3 pt-4">
