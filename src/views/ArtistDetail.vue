@@ -58,8 +58,8 @@ const back = () => router.push({ name: 'artists' })
 
     <!-- Profile Header -->
     <div class="flex flex-col md:flex-row gap-12 md:gap-20 items-start mb-24">
-        <div v-reveal class="w-full md:w-1/3">
-             <div class="aspect-[3/4] overflow-hidden rounded-apple shadow-2xl">
+        <div v-reveal class="w-full md:w-auto flex-shrink-0">
+             <div class="aspect-[3/4] overflow-hidden rounded-apple shadow-2xl w-full max-w-[320px] mx-auto md:mx-0">
                 <img :src="artist.photo" @error="handleArtistImageError" class="w-full h-full object-cover grayscale hover:grayscale-0 transition duration-700">
              </div>
         </div>
