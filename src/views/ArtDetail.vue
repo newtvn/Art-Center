@@ -143,11 +143,16 @@ onUnmounted(() => {
 
      <!-- Visualizer Overlay -->
      <transition name="fade">
-        <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-zinc-950/95 p-0 md:p-10 flex flex-col items-center justify-center backdrop-blur-sm">
+        <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-[#EAE8E1]/95 p-0 md:p-10 flex flex-col items-center justify-center backdrop-blur-md">
             
             <!-- Room Viewport -->
-            <div class="wall-preview w-full h-full md:max-w-7xl md:h-[75vh] md:rounded-3xl flex items-center justify-center relative shadow-2xl overflow-hidden bg-cover bg-center transition-all duration-700 ease-in-out border border-zinc-800" 
-                 :style="{ backgroundImage: `url(${currentRoom.url})` }">
+            <div class="wall-preview w-full h-full md:max-w-7xl md:h-[75vh] md:rounded-3xl flex items-center justify-center relative shadow-2xl overflow-hidden transition-all duration-700 ease-in-out border border-zinc-200" 
+                 :style="{ 
+                    backgroundImage: `url(${currentRoom.url})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                 }">
                 
                 <!-- Draggable Art -->
                 <div @mousedown.prevent="onMouseDown"
@@ -168,25 +173,25 @@ onUnmounted(() => {
                 </div>
                 
                 <!-- Room Vibes/Overlays -->
-                <div class="absolute inset-0 pointer-events-none bg-black/10 mix-blend-multiply"></div>
-                <div class="absolute top-0 w-full h-[150%] bg-gradient-to-b from-black/40 via-transparent to-black/30 pointer-events-none opacity-60 mix-blend-overlay"></div>
+                <div class="absolute inset-0 pointer-events-none bg-black/5 mix-blend-multiply"></div>
+                <div class="absolute top-0 w-full h-[150%] bg-gradient-to-b from-black/20 via-transparent to-black/10 pointer-events-none opacity-40 mix-blend-overlay"></div>
                 
                 <!-- Instructions -->
-                <div class="absolute top-8 left-8 text-[10px] uppercase font-bold text-white/50 tracking-[0.3em] pointer-events-none border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+                <div class="absolute top-8 left-8 text-[10px] uppercase font-bold text-white tracking-[0.3em] pointer-events-none border border-white/20 px-4 py-2 rounded-full backdrop-blur-md bg-black/10">
                     Click & Drag to Position
                 </div>
             </div>
             
             <!-- Controls Bar -->
-            <div class="mt-8 w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center bg-zinc-900/80 backdrop-blur-xl p-6 rounded-2xl border border-zinc-800/50">
+            <div class="mt-8 w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/50 shadow-xl">
                 
                 <!-- Room Selection -->
                 <div class="flex flex-col items-center md:items-start">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-500">Environment</p>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Environment</p>
                     <div class="flex gap-3">
                         <button v-for="room in rooms" :key="room.name" @click="currentRoom = room" 
                                 class="w-12 h-12 rounded-xl border-2 transition-all bg-cover bg-center hover:scale-110 shadow-lg relative overflow-hidden" 
-                                :class="currentRoom.name === room.name ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-100'"
+                                :class="currentRoom.name === room.name ? 'border-black scale-110' : 'border-transparent opacity-50 hover:opacity-100'"
                                 :style="{ backgroundImage: `url(${room.thumb})` }">
                         </button>
                     </div>
@@ -194,11 +199,11 @@ onUnmounted(() => {
 
                 <!-- Frame Selection -->
                 <div class="flex flex-col items-center">
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-500">Framing</p>
-                    <div class="flex gap-2 bg-zinc-800/50 p-1 rounded-full">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Framing</p>
+                    <div class="flex gap-2 bg-zinc-100 p-1 rounded-full border border-zinc-200">
                         <button v-for="style in frames" :key="style.name" @click="frameStyle = style"
                                 class="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all"
-                                :class="frameStyle.name === style.name ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-white'">
+                                :class="frameStyle.name === style.name ? 'bg-black text-white shadow-lg' : 'text-zinc-400 hover:text-black'">
                             {{ style.name }}
                         </button>
                     </div>
@@ -207,10 +212,10 @@ onUnmounted(() => {
                 <!-- Scale & Exit -->
                 <div class="flex flex-col md:flex-row items-center gap-6 justify-end">
                      <div class="w-32">
-                         <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-3 text-zinc-500 text-center md:text-left">Size</p>
-                         <input type="range" min="0.5" max="1.5" step="0.05" v-model.number="scale" class="w-full h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-white">
+                         <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-3 text-zinc-400 text-center md:text-left">Distance</p>
+                         <input type="range" min="0.5" max="1.5" step="0.05" v-model.number="scale" class="w-full h-1 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-black">
                      </div>
-                     <button @click="exitVisualizer" class="bg-white text-black w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 transition shadow-lg shrink-0">
+                     <button @click="exitVisualizer" class="bg-black text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-800 transition shadow-lg shrink-0">
                          &times;
                      </button>
                 </div>
