@@ -20,6 +20,10 @@ const openArtist = (artist) => {
     // Navigate using name for pretty URLs, ensuring we decode/encode properly
     router.push({ name: 'artist-detail', params: { name: artist.name } })
 }
+
+const handleImageError = (e) => {
+    e.target.src = 'https://images.unsplash.com/photo-1544986181-421710baa721?q=80&w=400' 
+}
 </script>
 
 <template>
@@ -30,8 +34,8 @@ const openArtist = (artist) => {
              @click="openArtist(artist)"
              v-reveal="{ delay: index * 0.2 }"
              class="flex flex-col md:flex-row gap-8 md:gap-16 items-center group cursor-pointer">
-            <div class="overflow-hidden rounded-apple shadow-xl aspect-[3/4] w-full max-w-[320px] md:w-64">
-                <img :src="artist.photo" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 group-hover:scale-105">
+            <div class="overflow-hidden rounded-apple shadow-xl aspect-[3/4] w-full max-w-[320px] md:w-80 flex-shrink-0 bg-zinc-100">
+                <img :src="artist.photo" @error="handleImageError" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700 group-hover:scale-105">
             </div>
             <div class="text-center md:text-left group-hover:translate-x-4 transition duration-500">
                 <h3 class="text-3xl font-bold mb-4">{{artist.name}}</h3>
