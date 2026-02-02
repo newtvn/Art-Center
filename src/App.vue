@@ -37,7 +37,7 @@ import CustomCursor from './components/CustomCursor.vue'
     </main>
 
     <!-- Footer -->
-    <footer class="relative z-10 mt-auto py-20 px-6 border-t border-zinc-100 text-center opacity-60 bg-white/50 backdrop-blur-sm">
+    <footer class="relative z-10 mt-auto py-20 px-6 border-t border-transparent text-center opacity-60">
         <p class="text-[10px] font-bold tracking-[0.4em] uppercase mb-4">The Art Center © 2026</p>
         <div class="text-xs space-y-2">
             <p>Designed by <span class="text-black font-bold">The Mind of S I R R</span></p>

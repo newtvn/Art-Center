@@ -3,7 +3,7 @@
     <div class="max-w-4xl pt-20 md:pt-0">
         <p v-reveal class="text-zinc-800 uppercase tracking-[0.5em] text-[10px] mb-6">Established 2026</p>
         <h1 v-reveal="{ delay: 0.1 }" class="text-6xl sm:text-7xl md:text-9xl font-bold tracking-tighter mb-10 leading-[0.9]">THE ART<br>CENTER</h1>
-        <div class="flex flex-col md:flex-row items-center gap-12 mt-12 md:mt-16 text-left border-t border-zinc-300 pt-12 w-full">
+        <div class="flex flex-col md:flex-row items-center gap-12 mt-12 md:mt-16 text-left border-t border-transparent pt-12 w-full">
             <p v-reveal="{ delay: 0.2 }" class="md:w-1/2 text-lg md:text-xl text-zinc-800 font-light leading-relaxed">
                 A digital sanctuary where geometry meets human emotion. We curate objects that redefine spaces through minimalism and silent strength.
             </p>

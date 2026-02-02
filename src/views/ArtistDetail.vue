@@ -42,7 +42,7 @@ const back = () => router.push({ name: 'artists' })
 
     <!-- Works Grid -->
     <div v-if="artistWorks.length > 0">
-        <h2 v-reveal class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-900 mb-12 border-b border-zinc-300 pb-4">Curated Collection</h2>
+        <h2 v-reveal class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-900 mb-12 border-b border-transparent pb-4">Curated Collection</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             <div v-for="(art, index) in artistWorks" :key="art.id" @click="openArt(art)" 
                  v-reveal="{ delay: index * 0.1 + 0.4 }"
