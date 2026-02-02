@@ -19,8 +19,22 @@ onMounted(async () => {
         
     if (data) art.value = data
 })
-const wallColor = ref('#f4f4f5')
-const colors = ['#f4f4f5', '#18181b', '#d4d4d8', '#fafaf9', '#fef2f2', '#ecfeff']
+const wallColor = ref('#f4f4f5') // Deprecated but kept to avoid immediate ref errors if template lag
+const rooms = [
+    { name: 'Minimal', url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2000', thumb: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=200' },
+    { name: 'Loft', url: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=2000', thumb: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=200' },
+    { name: 'Atelier', url: 'https://images.unsplash.com/photo-1513519245088-0e12902e35a6?q=80&w=2000', thumb: 'https://images.unsplash.com/photo-1513519245088-0e12902e35a6?q=80&w=200' },
+    { name: 'Living', url: 'https://images.unsplash.com/photo-1628156158097-f58c73445037?q=80&w=2000', thumb: 'https://images.unsplash.com/photo-1628156158097-f58c73445037?q=80&w=200' }
+]
+const currentRoom = ref(rooms[1])
+
+const frames = [
+    { name: 'Float', class: 'p-0 border-none', matteClass: '' },
+    { name: 'Gallery', class: 'bg-zinc-950 p-[12px] shadow-2xl', matteClass: 'bg-white p-[8%] border border-zinc-200' },
+    { name: 'Oak', class: 'bg-[#8B5E3C] p-[16px] shadow-2xl rounded-sm', matteClass: 'bg-[#FDFBF7] p-[10%] shadow-inner' },
+    { name: 'Sleek', class: 'bg-zinc-950 p-[2px]', matteClass: 'border-4 border-white' } // Thin frame
+]
+const frameStyle = ref(frames[1])
 
 // Visualizer Controls
 const scale = ref(1)
@@ -129,46 +143,76 @@ onUnmounted(() => {
 
      <!-- Visualizer Overlay -->
      <transition name="fade">
-        <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-white p-6 md:p-10 flex flex-col items-center justify-center">
-            <div class="wall-preview w-full max-w-6xl h-[60vh] md:h-[70vh] rounded-apple flex items-center justify-center relative shadow-inner overflow-hidden" :style="{ backgroundColor: wallColor }">
+        <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-zinc-950/95 p-0 md:p-10 flex flex-col items-center justify-center backdrop-blur-sm">
+            
+            <!-- Room Viewport -->
+            <div class="wall-preview w-full h-full md:max-w-7xl md:h-[75vh] md:rounded-3xl flex items-center justify-center relative shadow-2xl overflow-hidden bg-cover bg-center transition-all duration-700 ease-in-out border border-zinc-800" 
+                 :style="{ backgroundImage: `url(${currentRoom.url})` }">
+                
                 <!-- Draggable Art -->
                 <div @mousedown.prevent="onMouseDown"
-                     :class="{'cursor-grabbing': isDragging, 'cursor-grab': !isDragging}"
-                     class="touch-none shadow-[0_50px_100px_rgba(0,0,0,0.3)] transition-transform duration-75 relative z-10"
-                     :style="{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }">
-                    <img :src="art.image" class="h-[40vh] md:h-[50vh] pointer-events-none select-none" draggable="false">
+                     :class="[
+                        {'cursor-grabbing': isDragging, 'cursor-grab': !isDragging}, 
+                        frameStyle.class
+                     ]"
+                     class="touch-none relative z-10 transition-transform duration-75 select-none origin-center bg-white"
+                     :style="{ 
+                        transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                        boxShadow: '0 20px 50px -10px rgba(0,0,0,0.5), 0 10px 20px -10px rgba(0,0,0,0.4)' 
+                     }">
+                     
+                    <!-- Inner Matte/Frame Structure -->
+                    <div class="w-full h-full" :class="frameStyle.matteClass">
+                        <img :src="art.image" class="h-[25vh] md:h-[40vh] w-auto pointer-events-none block" draggable="false">
+                    </div>
                 </div>
                 
-                <!-- Lighting effect -->
-                <div class="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
-                <!-- Spot light effect -->
-                <div class="absolute top-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.8)_0%,transparent_50%)] opacity-30 pointer-events-none"></div>
+                <!-- Room Vibes/Overlays -->
+                <div class="absolute inset-0 pointer-events-none bg-black/10 mix-blend-multiply"></div>
+                <div class="absolute top-0 w-full h-[150%] bg-gradient-to-b from-black/40 via-transparent to-black/30 pointer-events-none opacity-60 mix-blend-overlay"></div>
                 
-                <!-- Instructions Overlay -->
-                <div class="absolute bottom-6 left-6 text-[10px] uppercase font-bold text-zinc-400 tracking-widest pointer-events-none opacity-50">
-                    Drag to move • Scroll to zoom
+                <!-- Instructions -->
+                <div class="absolute top-8 left-8 text-[10px] uppercase font-bold text-white/50 tracking-[0.3em] pointer-events-none border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
+                    Click & Drag to Position
                 </div>
             </div>
             
-            <div class="mt-8 md:mt-12 text-center w-full max-w-md space-y-8">
-                <!-- Color Controls -->
-                <div>
-                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Environment</p>
-                    <div class="flex gap-4 md:gap-6 justify-center">
-                        <button v-for="c in colors" :key="c" @click="wallColor = c" 
-                                class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-200 shadow-lg transition-transform hover:scale-110 active:scale-90" 
-                                :style="{ backgroundColor: c }" :class="{'ring-2 ring-black ring-offset-2': wallColor === c}"></button>
+            <!-- Controls Bar -->
+            <div class="mt-8 w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 items-center bg-zinc-900/80 backdrop-blur-xl p-6 rounded-2xl border border-zinc-800/50">
+                
+                <!-- Room Selection -->
+                <div class="flex flex-col items-center md:items-start">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-500">Environment</p>
+                    <div class="flex gap-3">
+                        <button v-for="room in rooms" :key="room.name" @click="currentRoom = room" 
+                                class="w-12 h-12 rounded-xl border-2 transition-all bg-cover bg-center hover:scale-110 shadow-lg relative overflow-hidden" 
+                                :class="currentRoom.name === room.name ? 'border-white scale-110' : 'border-transparent opacity-50 hover:opacity-100'"
+                                :style="{ backgroundImage: `url(${room.thumb})` }">
+                        </button>
                     </div>
                 </div>
 
-                <!-- Scale Slider -->
-                <div class="w-full px-10">
-                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Distance</p>
-                     <input type="range" min="0.5" max="2" step="0.1" v-model.number="scale" class="w-full accent-black cursor-pointer">
+                <!-- Frame Selection -->
+                <div class="flex flex-col items-center">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-500">Framing</p>
+                    <div class="flex gap-2 bg-zinc-800/50 p-1 rounded-full">
+                        <button v-for="style in frames" :key="style.name" @click="frameStyle = style"
+                                class="px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all"
+                                :class="frameStyle.name === style.name ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-white'">
+                            {{ style.name }}
+                        </button>
+                    </div>
                 </div>
 
-                <div class="pt-4 border-t border-zinc-100 w-full">
-                    <button @click="exitVisualizer" class="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-zinc-600 hover:border-zinc-600 transition">Exit Visualizer</button>
+                <!-- Scale & Exit -->
+                <div class="flex flex-col md:flex-row items-center gap-6 justify-end">
+                     <div class="w-32">
+                         <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-3 text-zinc-500 text-center md:text-left">Size</p>
+                         <input type="range" min="0.5" max="1.5" step="0.05" v-model.number="scale" class="w-full h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-white">
+                     </div>
+                     <button @click="exitVisualizer" class="bg-white text-black w-10 h-10 rounded-full flex items-center justify-center hover:bg-zinc-200 transition shadow-lg shrink-0">
+                         &times;
+                     </button>
                 </div>
             </div>
         </div>
