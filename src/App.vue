@@ -9,7 +9,7 @@ import bgImage from './assets/_ (78).jpeg'
     <!-- Background -->
     <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat" 
          :style="{ backgroundImage: `url('${bgImage}')` }">
-         <div class="absolute inset-0 bg-white/80 backdrop-blur-3xl"></div> 
+         <div class="absolute inset-0 bg-white/30 backdrop-blur-xl"></div> 
     </div>
 
     <!-- Navigation -->
