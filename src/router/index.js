@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Gallery from '../views/Gallery.vue'
 import Artists from '../views/Artists.vue'
 import ArtDetail from '../views/ArtDetail.vue'
+import ArtistDetail from '../views/ArtistDetail.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,6 +11,7 @@ const router = createRouter({
         { path: '/', name: 'home', component: Home },
         { path: '/gallery', name: 'gallery', component: Gallery },
         { path: '/curators', name: 'artists', component: Artists },
+        { path: '/curators/:name', name: 'artist-detail', component: ArtistDetail },
         { path: '/gallery/:id', name: 'art-detail', component: ArtDetail, props: true },
     ],
     scrollBehavior(to, from, savedPosition) {
