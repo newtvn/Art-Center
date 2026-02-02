@@ -24,7 +24,7 @@ const back = () => router.push({ name: 'artists' })
 <template>
   <div v-if="artist" class="min-h-screen pt-40 px-6 max-w-7xl mx-auto w-full pb-20">
     <!-- Back Button -->
-    <button @click="back" class="mb-12 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border border-zinc-200 px-4 py-2 rounded-full hover:bg-black hover:text-white transition">&larr; Back to Curators</button>
+    <button @click="back" class="mb-12 text-[10px] font-bold uppercase tracking-widest text-zinc-800 border border-zinc-800 px-4 py-2 rounded-full hover:bg-black hover:text-white transition">&larr; Back to Curators</button>
 
     <!-- Profile Header -->
     <div class="flex flex-col md:flex-row gap-12 md:gap-20 items-start mb-24">
@@ -35,14 +35,14 @@ const back = () => router.push({ name: 'artists' })
         </div>
         <div class="w-full md:w-2/3 pt-4">
             <h1 v-reveal="{ delay: 0.1 }" class="text-6xl md:text-8xl font-bold mb-8 tracking-tighter leading-none">{{artist.name}}</h1>
-            <span v-reveal="{ delay: 0.2 }" class="text-[10px] font-bold uppercase border border-zinc-300 px-4 py-2 rounded-full mb-8 inline-block">{{artist.specialty}}</span>
-            <p v-reveal="{ delay: 0.3 }" class="text-xl md:text-2xl leading-relaxed text-zinc-600 font-light max-w-2xl">{{artist.longBio}}</p>
+            <span v-reveal="{ delay: 0.2 }" class="text-[10px] font-bold uppercase border border-zinc-800 px-4 py-2 rounded-full mb-8 inline-block text-zinc-800">{{artist.specialty}}</span>
+            <p v-reveal="{ delay: 0.3 }" class="text-xl md:text-2xl leading-relaxed text-zinc-800 font-light max-w-2xl">{{artist.longBio}}</p>
         </div>
     </div>
 
     <!-- Works Grid -->
     <div v-if="artistWorks.length > 0">
-        <h2 v-reveal class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-400 mb-12 border-b border-zinc-100 pb-4">Curated Collection</h2>
+        <h2 v-reveal class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-900 mb-12 border-b border-zinc-300 pb-4">Curated Collection</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
             <div v-for="(art, index) in artistWorks" :key="art.id" @click="openArt(art)" 
                  v-reveal="{ delay: index * 0.1 + 0.4 }"
