@@ -44,7 +44,7 @@ onMounted(async () => {
                 <div class="h-40 bg-black/5 flex items-center justify-center mb-4">
                     <span class="text-[10px] opacity-40">Profile Data Plugin</span>
                 </div>
-                <button class="w-full border border-black py-3 text-[10px] uppercase font-bold hover:bg-black hover:text-[#E8E4D9]">Edit Profile</button>
+                <button @click="router.push('/admin/profile')" class="w-full border border-black py-3 text-[10px] uppercase font-bold hover:bg-black hover:text-[#E8E4D9]">Edit Profile</button>
             </div>
 
             <!-- Artworks Section -->
