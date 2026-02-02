@@ -122,14 +122,18 @@ const uploadArt = async () => {
                 <div v-if="loading" class="text-[10px] opacity-50 font-bold uppercase tracking-widest text-center mt-10">Scanning archives...</div>
                 
                 <ul v-else class="space-y-4">
-                    <li v-for="art in artworks" :key="art.id" class="group cursor-pointer hover:bg-zinc-50 p-4 -mx-4 rounded-xl transition duration-300">
-                        <div class="flex justify-between items-baseline mb-1">
-                            <span class="font-bold text-sm">{{ art.title }}</span>
-                            <span class="text-[10px] text-zinc-400 font-bold">{{ art.year }}</span>
-                        </div>
-                        <div class="text-[10px] text-zinc-500 flex justify-between">
-                            <span class="uppercase tracking-wider">{{ art.category }}</span>
-                            <span>${{ art.price }}</span>
+                    <li v-for="art in artworks" :key="art.id" 
+                        class="group cursor-pointer hover:bg-zinc-50 p-4 -mx-4 rounded-xl transition duration-300 flex gap-4 items-center">
+                        <img :src="art.image" class="w-12 h-12 rounded-lg object-cover grayscale group-hover:grayscale-0 transition duration-300 bg-zinc-100">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <span class="font-bold text-sm">{{ art.title }}</span>
+                                <span class="text-[10px] text-zinc-400 font-bold">{{ art.year }}</span>
+                            </div>
+                            <div class="text-[10px] text-zinc-500 flex justify-between">
+                                <span class="uppercase tracking-wider">{{ art.category }}</span>
+                                <span>${{ art.price }}</span>
+                            </div>
                         </div>
                     </li>
                     <li v-if="artworks.length === 0" class="text-[10px] opacity-40 italic text-center py-10">No works found in the ledger.</li>
