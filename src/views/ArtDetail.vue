@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDraggable } from '@vueuse/core'
 import { artworks } from '../data'
 
 const route = useRoute()
@@ -11,6 +12,14 @@ const art = computed(() => artworks.find(a => a.id === id.value))
 const showVisualizer = ref(false)
 const wallColor = ref('#f4f4f5')
 const colors = ['#f4f4f5', '#18181b', '#d4d4d8', '#fafaf9', '#fef2f2', '#ecfeff']
+
+// Visualizer Controls
+const dragItem = ref(null)
+const scale = ref(1)
+const { x, y, style: dragStyle } = useDraggable(dragItem, {
+  initialValue: { x: 0, y: 0 },
+  preventDefault: true
+})
 
 const close = () => {
     router.push({ name: 'gallery' })
@@ -45,15 +54,15 @@ const close = () => {
                 <div class="flex items-center gap-4 mb-4">
                     <p class="text-zinc-400 text-xs font-bold tracking-[0.3em] uppercase">{{art.category}}</p>
                 </div>
-                <h2 class="text-5xl md:text-6xl font-bold mb-8 tracking-tighter">{{art.title}}</h2>
+                <h2 v-reveal class="text-5xl md:text-6xl font-bold mb-8 tracking-tighter">{{art.title}}</h2>
                 
                 <div class="space-y-10">
-                    <section>
+                    <section v-reveal="{ delay: 0.1 }">
                         <h4 class="text-xs font-bold uppercase mb-4 text-zinc-400 tracking-widest">History of the Piece</h4>
                         <p class="text-xl leading-relaxed text-zinc-600">{{art.longHistory}}</p>
                     </section>
 
-                    <section class="bg-zinc-900 text-white p-10 rounded-apple relative overflow-hidden group">
+                    <section v-reveal="{ delay: 0.2 }" class="bg-zinc-900 text-white p-10 rounded-apple relative overflow-hidden group">
                         <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition duration-500"></div>
                         <h4 class="text-xs font-bold uppercase mb-6 opacity-50 tracking-widest">Artist's Inspiration</h4>
                         <p class="text-2xl font-light italic leading-snug">"{{art.inspirationText}}"</p>
@@ -63,7 +72,7 @@ const close = () => {
                         </div>
                     </section>
 
-                    <section id="contact" class="pt-10 border-t border-zinc-100">
+                    <section v-reveal="{ delay: 0.3 }" id="contact" class="pt-10 border-t border-zinc-100">
                         <div class="flex items-center justify-between flex-wrap gap-6">
                             <div>
                                 <h4 class="text-xs font-bold uppercase mb-2 text-zinc-400 tracking-widest">Inquiries</h4>
@@ -81,21 +90,44 @@ const close = () => {
      <transition name="fade">
         <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-white p-6 md:p-10 flex flex-col items-center justify-center">
             <div class="wall-preview w-full max-w-6xl h-[60vh] md:h-[70vh] rounded-apple flex items-center justify-center relative shadow-inner overflow-hidden" :style="{ backgroundColor: wallColor }">
-                <img :src="art.image" class="h-1/2 md:h-2/3 shadow-[0_50px_100px_rgba(0,0,0,0.3)] transition-transform duration-700">
+                <!-- Draggable Art -->
+                <div ref="dragItem" 
+                     class="cursor-move touch-none active:cursor-grabbing shadow-[0_50px_100px_rgba(0,0,0,0.3)] transition-transform duration-75 relative z-10"
+                     :style="{ ...dragStyle, transform: `translate(${x}px, ${y}px) scale(${scale})` }">
+                    <img :src="art.image" class="h-[40vh] md:h-[50vh] pointer-events-none select-none">
+                </div>
+                
                 <!-- Lighting effect -->
                 <div class="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
                 <!-- Spot light effect -->
                 <div class="absolute top-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.8)_0%,transparent_50%)] opacity-30 pointer-events-none"></div>
+                
+                <!-- Instructions Overlay -->
+                <div class="absolute bottom-6 left-6 text-[10px] uppercase font-bold text-zinc-400 tracking-widest pointer-events-none opacity-50">
+                    Drag to move • Scroll to zoom
+                </div>
             </div>
             
-            <div class="mt-8 md:mt-12 text-center w-full max-w-md">
-                <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-6 text-zinc-400">Custom Environment</p>
-                <div class="flex gap-4 md:gap-6 mb-10 justify-center">
-                    <button v-for="c in colors" :key="c" @click="wallColor = c" 
-                            class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-200 shadow-lg transition-transform hover:scale-110 active:scale-90" 
-                            :style="{ backgroundColor: c }" :class="{'ring-2 ring-black ring-offset-2': wallColor === c}"></button>
+            <div class="mt-8 md:mt-12 text-center w-full max-w-md space-y-8">
+                <!-- Color Controls -->
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Environment</p>
+                    <div class="flex gap-4 md:gap-6 justify-center">
+                        <button v-for="c in colors" :key="c" @click="wallColor = c" 
+                                class="w-10 h-10 md:w-12 md:h-12 rounded-full border border-zinc-200 shadow-lg transition-transform hover:scale-110 active:scale-90" 
+                                :style="{ backgroundColor: c }" :class="{'ring-2 ring-black ring-offset-2': wallColor === c}"></button>
+                    </div>
                 </div>
-                <button @click="showVisualizer = false" class="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-zinc-600 hover:border-zinc-600 transition">Exit Visualizer</button>
+
+                <!-- Scale Slider -->
+                <div class="w-full px-10">
+                     <p class="text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-zinc-400">Distance</p>
+                     <input type="range" min="0.5" max="2" step="0.1" v-model.number="scale" class="w-full accent-black cursor-pointer">
+                </div>
+
+                <div class="pt-4 border-t border-zinc-100 w-full">
+                    <button @click="showVisualizer = false" class="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-zinc-600 hover:border-zinc-600 transition">Exit Visualizer</button>
+                </div>
             </div>
         </div>
      </transition>

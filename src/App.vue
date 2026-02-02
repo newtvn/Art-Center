@@ -1,11 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import CustomCursor from './components/CustomCursor.vue'
 import bgImage from './assets/_ (78).jpeg'
 </script>
 
 <template>
-  <div class="relative min-h-screen flex flex-col font-sans">
+  <CustomCursor />
+  <div class="relative min-h-screen flex flex-col font-sans cursor-none">
     <!-- Background -->
     <div class="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat" 
          :style="{ backgroundImage: `url('${bgImage}')` }">

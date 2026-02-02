@@ -30,7 +30,8 @@ const openArt = (art) => {
     </div>
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-        <div v-for="art in filteredArt" :key="art.id" @click="openArt(art)" 
+        <div v-for="(art, index) in filteredArt" :key="art.id" @click="openArt(art)" 
+             v-reveal="{ delay: index * 0.1, scale: 0.95 }"
              class="group cursor-pointer">
             <div class="overflow-hidden rounded-apple bg-zinc-100 aspect-[3/4] mb-6 shadow-sm group-hover:shadow-2xl transition-all duration-700">
                 <img :src="art.image" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-105">
