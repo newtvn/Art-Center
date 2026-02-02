@@ -1,7 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useDraggable } from '@vueuse/core'
 import { artworks } from '../data'
 
 const route = useRoute()
@@ -14,16 +13,47 @@ const wallColor = ref('#f4f4f5')
 const colors = ['#f4f4f5', '#18181b', '#d4d4d8', '#fafaf9', '#fef2f2', '#ecfeff']
 
 // Visualizer Controls
-const dragItem = ref(null)
 const scale = ref(1)
-const { x, y, style: dragStyle } = useDraggable(dragItem, {
-  initialValue: { x: 0, y: 0 },
-  preventDefault: true
-})
+const position = ref({ x: 0, y: 0 })
+const isDragging = ref(false)
+let startPos = { x: 0, y: 0 }
+let startMouse = { x: 0, y: 0 }
+
+const onMouseDown = (e) => {
+    isDragging.value = true
+    startMouse = { x: e.clientX, y: e.clientY }
+    startPos = { ...position.value }
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+}
+
+const onMouseMove = (e) => {
+    if (!isDragging.value) return
+    const dx = e.clientX - startMouse.x
+    const dy = e.clientY - startMouse.y
+    position.value = { x: startPos.x + dx, y: startPos.y + dy }
+}
+
+const onMouseUp = () => {
+    isDragging.value = false
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+}
 
 const close = () => {
     router.push({ name: 'gallery' })
 }
+
+const exitVisualizer = () => {
+    showVisualizer.value = false
+    position.value = { x: 0, y: 0 }
+    scale.value = 1
+}
+
+onUnmounted(() => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+})
 </script>
 
 <template>
@@ -91,10 +121,11 @@ const close = () => {
         <div v-if="showVisualizer" class="fixed inset-0 z-[100] bg-white p-6 md:p-10 flex flex-col items-center justify-center">
             <div class="wall-preview w-full max-w-6xl h-[60vh] md:h-[70vh] rounded-apple flex items-center justify-center relative shadow-inner overflow-hidden" :style="{ backgroundColor: wallColor }">
                 <!-- Draggable Art -->
-                <div ref="dragItem" 
-                     class="cursor-move touch-none active:cursor-grabbing shadow-[0_50px_100px_rgba(0,0,0,0.3)] transition-transform duration-75 relative z-10"
-                     :style="{ ...dragStyle, transform: `translate(${x}px, ${y}px) scale(${scale})` }">
-                    <img :src="art.image" class="h-[40vh] md:h-[50vh] pointer-events-none select-none">
+                <div @mousedown.prevent="onMouseDown"
+                     :class="{'cursor-grabbing': isDragging, 'cursor-grab': !isDragging}"
+                     class="touch-none shadow-[0_50px_100px_rgba(0,0,0,0.3)] transition-transform duration-75 relative z-10"
+                     :style="{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }">
+                    <img :src="art.image" class="h-[40vh] md:h-[50vh] pointer-events-none select-none" draggable="false">
                 </div>
                 
                 <!-- Lighting effect -->
@@ -126,7 +157,7 @@ const close = () => {
                 </div>
 
                 <div class="pt-4 border-t border-zinc-100 w-full">
-                    <button @click="showVisualizer = false" class="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-zinc-600 hover:border-zinc-600 transition">Exit Visualizer</button>
+                    <button @click="exitVisualizer" class="text-xs font-bold uppercase tracking-widest border-b border-black pb-1 hover:text-zinc-600 hover:border-zinc-600 transition">Exit Visualizer</button>
                 </div>
             </div>
         </div>
