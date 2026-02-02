@@ -15,7 +15,8 @@ const router = createRouter({
         { path: '/gallery/:id', name: 'art-detail', component: ArtDetail, props: true },
         // Admin Routes
         { path: '/admin/login', name: 'admin-login', component: () => import('../views/admin/AdminLogin.vue') },
-        { path: '/admin/dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboard.vue') }
+        { path: '/admin/dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboard.vue') },
+        { path: '/admin/artworks', name: 'admin-artworks', component: () => import('../views/admin/ArtManager.vue') }
     ],
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) return savedPosition
