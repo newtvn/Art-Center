@@ -10,6 +10,7 @@ const app = createApp(App)
 app.directive('reveal', {
     mounted(el, binding) {
         const options = binding.value || {};
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
         gsap.set(el, {
             y: options.y || 50,
@@ -35,7 +36,9 @@ app.directive('reveal', {
         }, { threshold: 0.15 });
 
         observer.observe(el);
-    }
+        el._revealObserver = observer;
+    },
+    unmounted(el) { el._revealObserver?.disconnect(); gsap.killTweensOf(el) }
 });
 
 app.use(router).mount('#app')

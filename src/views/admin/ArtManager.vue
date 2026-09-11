@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient'
+import { mediaCategories } from '../../lib/gallery'
 
 const router = useRouter()
 const artworks = ref([])
@@ -21,7 +22,7 @@ const newArt = ref({
 const imagePreview = ref(null)
 const uploading = ref(false)
 
-const categories = ['Sculpture', 'Mixed Media', 'Digital', 'Painting', 'Installation']
+const categories = mediaCategories
 
 onMounted(async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -36,7 +37,7 @@ onMounted(async () => {
 const fetchArtworks = async () => {
     // In a real scenario, we'd filter by artist_id matching the user's connected artist profile
     // For now, we fetch all to demonstrate
-    const { data, error } = await supabase.from('artworks').select('*')
+    const { data, error } = await supabase.from('artworks').select('*').eq('artist_id', user.value.id)
     if (data) artworks.value = data
     loading.value = false
 }
@@ -82,7 +83,7 @@ const uploadArt = async () => {
             title: newArt.value.title,
             year: newArt.value.year,
             category: newArt.value.category,
-            price: newArt.value.price,
+            price: newArt.value.price === '' ? null : Number(newArt.value.price),
             dimensions: newArt.value.dimensions,
             image: publicUrl
         })

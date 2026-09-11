@@ -71,7 +71,7 @@ const saveProfile = async () => {
     if (profile.value._newPhotoFile) {
         const file = profile.value._newPhotoFile
         const fileExt = file.name.split('.').pop()
-        const filePath = `avatars/${user.value.id}.${fileExt}`
+        const filePath = `${user.value.id}/avatar.${fileExt}`
         
         const { error: uploadError } = await supabase.storage
             .from('art-center-assets')

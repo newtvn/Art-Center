@@ -10,9 +10,10 @@ const router = createRouter({
     routes: [
         { path: '/', name: 'home', component: Home },
         { path: '/gallery', name: 'gallery', component: Gallery },
-        { path: '/curators', name: 'artists', component: Artists },
-        { path: '/curators/:name', name: 'artist-detail', component: ArtistDetail },
+        { path: '/artists', alias: '/curators', name: 'artists', component: Artists },
+        { path: '/artists/:name', alias: '/curators/:name', name: 'artist-detail', component: ArtistDetail },
         { path: '/gallery/:id', name: 'art-detail', component: ArtDetail, props: true },
+        { path: '/:pathMatch(.*)*', redirect: '/gallery' },
         // Admin Routes
         { path: '/admin/login', name: 'admin-login', component: () => import('../views/admin/AdminLogin.vue') },
         { path: '/admin/dashboard', name: 'admin-dashboard', component: () => import('../views/admin/AdminDashboard.vue') },
