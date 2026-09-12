@@ -1,207 +1,37 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { supabase } from '../../lib/supabaseClient'
-import { mediaCategories } from '../../lib/gallery'
-
-const router = useRouter()
-const artworks = ref([])
-const loading = ref(true)
-const user = ref(null)
-
-// Form State
-const isEditing = ref(false)
-const newArt = ref({
-    title: '',
-    year: '',
-    category: 'Sculpture',
-    price: '',
-    dimensions: '',
-    image: null
-})
-const imagePreview = ref(null)
-const uploading = ref(false)
-
-const categories = mediaCategories
-
-onMounted(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-        router.push('/admin/login')
-        return
-    }
-    user.value = session.user
-    fetchArtworks()
-})
-
-const fetchArtworks = async () => {
-    // In a real scenario, we'd filter by artist_id matching the user's connected artist profile
-    // For now, we fetch all to demonstrate
-    const { data, error } = await supabase.from('artworks').select('*').eq('artist_id', user.value.id)
-    if (data) artworks.value = data
-    loading.value = false
-}
-
-const handleImageSelect = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    
-    newArt.value.image = file
-    imagePreview.value = URL.createObjectURL(file)
-}
-
-const uploadArt = async () => {
-    if (!newArt.value.image || !newArt.value.title) return
-    
-    uploading.value = true
-    const file = newArt.value.image
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random()}.${fileExt}`
-    const filePath = `${user.value.id}/${fileName}`
-
-    // 1. Upload Image
-    const { error: uploadError } = await supabase.storage
-        .from('art-center-assets')
-        .upload(filePath, file)
-
-    if (uploadError) {
-        console.error('Upload failed:', uploadError)
-        uploading.value = false
-        return
-    }
-
-    // 2. Get Public URL
-    const { data: { publicUrl } } = supabase.storage
-        .from('art-center-assets')
-        .getPublicUrl(filePath)
-
-    // 3. Insert Record
-    const { error: insertError } = await supabase
-        .from('artworks')
-        .insert({
-            artist_id: user.value.id, // Assuming the auth user ID links to this
-            title: newArt.value.title,
-            year: newArt.value.year,
-            category: newArt.value.category,
-            price: newArt.value.price === '' ? null : Number(newArt.value.price),
-            dimensions: newArt.value.dimensions,
-            image: publicUrl
-        })
-
-    if (insertError) {
-        console.error('Insert failed:', insertError)
-    } else {
-        // Reset and Refresh
-        isEditing.value = false
-        newArt.value = { title: '', year: '', category: 'Sculpture', price: '', dimensions: '', image: null }
-        imagePreview.value = null
-        fetchArtworks()
-    }
-    uploading.value = false
-}
+import {computed,ref} from 'vue'
+import {useRoute,useRouter} from 'vue-router'
+import ArtistLayout from '../../components/studio/ArtistLayout.vue'
+import ArtworkEditor from '../../components/studio/ArtworkEditor.vue'
+import GalleryImage from '../../components/GalleryImage.vue'
+import PaintLoader from '../../components/PaintLoader.vue'
+import {useArtistWorkspace} from '../../composables/useArtistWorkspace'
+import {useAuctions} from '../../composables/useAuctions'
+import {countdown,money} from '../../lib/auctions'
+const route=useRoute(),router=useRouter(),{profile,artworks,loading,problem,refresh}=useArtistWorkspace()
+const {auctions,now,problem:auctionProblem}=useAuctions()
+const search=ref(''),category=ref('All'),notice=ref('')
+const categories=computed(()=>['All',...new Set(artworks.value.map(art=>art.category).filter(Boolean))])
+const filtered=computed(()=>artworks.value.filter(art=>(category.value==='All'||art.category===category.value) && [art.title,art.category,art.year].filter(Boolean).join(' ').toLowerCase().includes(search.value.trim().toLowerCase())))
+const editing=computed(()=>artworks.value.find(art=>art.id===route.query.edit))
+const isNew=computed(()=>route.query.new==='1')
+const auctionFor=id=>auctions.value.find(a=>a.artwork_id===id)
+const close=()=>router.push('/admin/artworks')
+async function saved(art){await refresh();notice.value='Your artwork is saved and visible in the gallery.';await router.replace({path:'/admin/artworks',query:{edit:art.id}})}
 </script>
-
-<template>
-    <div class="min-h-screen p-6 md:p-12 font-sans text-zinc-900 relative z-20">
-        <!-- Header -->
-        <header class="flex justify-between items-end mb-12 border-b border-zinc-200 pb-6">
-            <div>
-                <h1 class="text-sm font-bold uppercase tracking-[0.4em] mb-2">Inventory Registry</h1>
-                <p class="text-xs uppercase tracking-widest text-zinc-400">Archive and manage exhibition pieces</p>
-            </div>
-            <button @click="router.push('/admin/dashboard')" class="text-xs uppercase font-bold tracking-widest hover:text-zinc-500 transition">Back to Ledger</button>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-24">
-            <!-- Sidebar: List -->
-            <div class="lg:col-span-1 border-r border-zinc-200 pr-12 min-h-[50vh]">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-sm font-bold uppercase tracking-widest">Cataloged Works</h2>
-                    <button @click="isEditing = true" class="text-xs bg-black text-white px-5 py-3 rounded-full uppercase font-bold tracking-wider hover:bg-zinc-800 transition shadow-lg">+ New Entry</button>
-                </div>
-                
-                <div v-if="loading" class="text-xs opacity-50 font-bold uppercase tracking-widest text-center mt-10">Scanning archives...</div>
-                
-                <ul v-else class="space-y-4">
-                    <li v-for="art in artworks" :key="art.id" 
-                        class="group cursor-pointer hover:bg-zinc-50 p-6 -mx-6 rounded-xl transition duration-300 flex gap-6 items-center">
-                        <img :src="art.image" class="w-16 h-16 rounded-xl object-cover grayscale group-hover:grayscale-0 transition duration-300 bg-zinc-100 shadow-sm">
-                        <div class="flex-1">
-                            <div class="flex justify-between items-baseline mb-2">
-                                <span class="font-bold text-base">{{ art.title }}</span>
-                                <span class="text-xs text-zinc-400 font-bold">{{ art.year }}</span>
-                            </div>
-                            <div class="text-xs text-zinc-500 flex justify-between">
-                                <span class="uppercase tracking-wider">{{ art.category }}</span>
-                                <span class="font-bold">${{ art.price }}</span>
-                            </div>
-                        </div>
-                    </li>
-                    <li v-if="artworks.length === 0" class="text-xs opacity-40 italic text-center py-10">No works found in the ledger.</li>
-                </ul>
-            </div>
-
-            <!-- Main: Editor -->
-            <div class="lg:col-span-2 pl-0 lg:pl-12">
-                <div v-if="isEditing" class="max-w-2xl">
-                    <h2 class="text-sm font-bold uppercase tracking-widest mb-10 text-zinc-400">New Entry Form</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
-                        <!-- Image Upload -->
-                        <div class="aspect-[3/4] bg-zinc-50 border border-zinc-100 rounded-apple flex flex-col items-center justify-center relative hover:scale-[1.02] transition duration-500 cursor-pointer group shadow-xl overflow-hidden">
-                            <input type="file" @change="handleImageSelect" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" />
-                            <img v-if="imagePreview" :src="imagePreview" class="absolute inset-0 w-full h-full object-cover pointer-events-none" />
-                            <div v-else class="text-center p-4 opacity-40 group-hover:opacity-100 transition">
-                                <span class="text-6xl mb-4 block font-light">+</span>
-                                <span class="text-xs uppercase font-bold tracking-widest">Attach Visual</span>
-                            </div>
-                        </div>
-
-                        <!-- Data Fields -->
-                        <div class="flex flex-col gap-8">
-                            <div class="group">
-                                <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Title</label>
-                                <input v-model="newArt.title" type="text" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-bold text-2xl placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="Untitled No. 5">
-                            </div>
-                            
-                            <div class="group">
-                                <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Creation Year</label>
-                                <input v-model="newArt.year" type="text" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-bold text-lg placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="2026">
-                            </div>
-
-                            <div class="group">
-                                <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Category</label>
-                                <select v-model="newArt.category" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-bold text-lg text-zinc-900 cursor-pointer">
-                                    <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-                                </select>
-                            </div>
-
-                            <div class="flex gap-8">
-                                <div class="group w-1/2">
-                                    <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Value (USD)</label>
-                                    <input v-model="newArt.price" type="number" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-bold text-lg placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="4500">
-                                </div>
-                                <div class="group w-1/2">
-                                    <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Dimensions</label>
-                                    <input v-model="newArt.dimensions" type="text" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-bold text-lg placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="40x60cm">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-8 mt-16 border-t border-zinc-100 pt-10">
-                        <button @click="isEditing = false" class="text-xs uppercase font-bold text-zinc-400 hover:text-red-500 px-6 py-3 transition">Discard</button>
-                        <button @click="uploadArt" :disabled="uploading" class="bg-black text-white px-10 py-5 rounded-full text-xs uppercase font-bold tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-lg hover:scale-105 transition-all">
-                            {{ uploading ? 'Archiving...' : 'Stamp & Save' }}
-                        </button>
-                    </div>
-                </div>
-
-                <div v-else class="h-full flex flex-col items-center justify-center opacity-30 min-h-[50vh]">
-                    <p class="text-sm uppercase tracking-widest mb-6 font-bold">Registry Closed</p>
-                    <p class="text-xs">Select "New Entry" on the left to open the ledger.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
+<template><ArtistLayout section="Your artwork">
+ <p v-if="notice" class="studio-notice success" role="status">{{notice}} <button aria-label="Dismiss notification" @click="notice=''">×</button></p>
+ <PaintLoader v-if="loading" label="Opening your collection…"/>
+ <div v-else-if="problem" class="studio-empty" role="alert"><h1>Your collection is taking a moment.</h1><p>{{problem}}</p><button class="pill" @click="refresh">Try again ↗</button></div>
+ <div v-else-if="isNew && !profile" class="studio-empty"><p class="studio-eyebrow">First, an introduction.</p><h1>Put a name<br>to your work.</h1><p>Create your artist profile before publishing your first piece.</p><RouterLink to="/admin/profile" class="pill studio-primary">Create your profile ↗</RouterLink><button class="text-link" @click="close">← Back to your collection</button></div>
+ <ArtworkEditor v-else-if="isNew || editing" :key="editing?.id || 'new'" :art="editing" @close="close" @saved="saved"/>
+ <template v-else>
+  <header class="studio-page-heading"><div><p class="studio-eyebrow">Originals, made by you.</p><h1>A body<br>of <em>work.</em></h1><p>Your pieces, their stories, and what comes next.</p></div><RouterLink to="/admin/artworks?new=1" class="pill studio-primary">Add artwork <span aria-hidden="true">↗</span></RouterLink></header>
+  <p v-if="route.query.edit" class="studio-notice error" role="alert">That artwork isn’t in your collection. Choose one of your pieces below.</p>
+  <div v-if="artworks.length" class="studio-collection-tools"><div class="studio-filter-tabs" aria-label="Filter by medium"><button v-for="medium in categories" :key="medium" :class="{selected:category===medium}" :aria-pressed="category===medium" @click="category=medium">{{medium}}<span v-if="medium==='All'">{{artworks.length}}</span></button></div><label class="studio-search"><span class="sr-only">Search your artwork</span><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input v-model="search" type="search" placeholder="Find a piece…"></label></div>
+  <p v-if="artworks.length" class="studio-results" role="status">{{filtered.length}} {{filtered.length===1?'piece':'pieces'}} in view</p>
+  <div v-if="filtered.length" class="studio-art-grid"><article v-for="(art,i) in filtered" :key="art.id" class="studio-art-card"><RouterLink :to="{path:'/admin/artworks',query:{edit:art.id}}" class="studio-art-card-image"><GalleryImage :src="art.image" :alt="art.title" :eager="i<3"/><span class="studio-art-edit">Edit artwork ↗</span><span class="studio-art-index">{{String(i+1).padStart(2,'0')}}</span></RouterLink><div class="studio-art-card-title"><div><h2><RouterLink :to="{path:'/admin/artworks',query:{edit:art.id}}">{{art.title}}</RouterLink></h2><p>{{[art.category,art.year].filter(Boolean).join(' / ')}}</p></div><span v-if="art.price!=null">{{money(art.price)}}</span></div><div class="studio-art-card-bottom"><template v-if="auctionFor(art.id)"><span class="studio-status" :class="{live:Date.parse(auctionFor(art.id).ends_at)>now}">{{Date.parse(auctionFor(art.id).ends_at)>now?'Bidding open':'Auction ended'}}</span><span>{{auctionProblem?'Updates unavailable':countdown(auctionFor(art.id).ends_at,now)}}</span><strong>{{money(auctionFor(art.id).current_price)}}</strong></template><template v-else><span class="studio-status">In the gallery</span><RouterLink :to="{path:'/admin/artworks',query:{edit:art.id}}">{{auctionProblem?'Edit piece':'Set up auction'}} ↗</RouterLink></template></div></article></div>
+  <div v-else-if="artworks.length" class="studio-empty"><h2>No pieces found.</h2><p>Try a different title or medium.</p><button class="text-link" @click="search='';category='All'">Clear filters ↗</button></div>
+  <div v-else class="studio-empty studio-collection-empty"><span class="studio-empty-mark" aria-hidden="true">＋</span><h2>There’s space<br>for your first piece.</h2><p>Add an image, tell its story, and share it with the gallery.</p><RouterLink to="/admin/artworks?new=1" class="pill studio-primary">Add your first artwork ↗</RouterLink></div>
+ </template>
+</ArtistLayout></template>

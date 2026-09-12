@@ -1,176 +1,56 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { supabase } from '../../lib/supabaseClient'
-
-const router = useRouter()
-const user = ref(null)
-const loading = ref(true)
-const saving = ref(false)
-
-const profile = ref({
-    name: '',
-    specialty: '',
-    long_bio: '',
-    photo: '', // URL
-    socials: {
-        instagram: '',
-        website: ''
-    }
-})
-
-const photoPreview = ref(null)
-
-onMounted(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-        router.push('/admin/login')
-        return
-    }
-    user.value = session.user
-    fetchProfile()
-})
-
-const fetchProfile = async () => {
-    // Assuming 1:1 relationship between auth user and artist profile for now
-    // In a real app, we might query by artist_id stored in user metadata, or just match IDs if we forced them to be same
-    // For this demo, let's try to find an artist record that matches a potential 'id' or just fetch the first one associated
-    
-    // Strategy: We'll assume the artist table ID matches the Auth User ID (requires manual insert or trigger, 
-    // BUT for simplicity in this "CMS", let's query where id matches, or create if missing)
-    
-    let { data, error } = await supabase
-        .from('artists')
-        .select('*')
-        .eq('id', user.value.id)
-        .single()
-
-    if (data) {
-        profile.value = data
-        if (!profile.value.socials) profile.value.socials = { instagram: '', website: '' } // ensure structure
-        if (data.photo) photoPreview.value = data.photo
-    }
-    loading.value = false
+import {computed,ref,watch,onUnmounted} from 'vue'
+import ArtistLayout from '../../components/studio/ArtistLayout.vue'
+import GalleryImage from '../../components/GalleryImage.vue'
+import PaintLoader from '../../components/PaintLoader.vue'
+import {useArtistWorkspace} from '../../composables/useArtistWorkspace'
+import {supabase} from '../../lib/supabaseClient'
+import {imageProblem,uploadStudioImage} from '../../lib/studio'
+import {safeExternalUrl} from '../../lib/gallery'
+const {user,profile,loading,problem,refresh}=useArtistWorkspace()
+const empty=()=>({name:'',specialty:'',long_bio:'',photo:'',socials:{instagram:'',website:''}})
+const form=ref(empty()),file=ref(null),busy=ref(false),error=ref(''),notice=ref(''),baseline=ref('')
+const dirty=computed(()=>!!file.value || JSON.stringify(form.value)!==baseline.value)
+const publicLink=computed(()=>profile.value?.name?{name:'artist-detail',params:{name:profile.value.name}}:null)
+let objectUrl
+function reset(){const value=profile.value;form.value=value?{name:value.name||'',specialty:value.specialty||'',long_bio:value.long_bio||'',photo:value.photo||'',socials:{...value.socials,instagram:value.socials?.instagram||'',website:value.socials?.website||''}}:empty();baseline.value=JSON.stringify(form.value);file.value=null;if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl=null};error.value=''}
+watch(profile,()=>{if(!baseline.value || !dirty.value)reset()},{immediate:true})
+function selectPhoto(event){
+ const candidate=event.target.files?.[0];if(!candidate)return
+ const issue=imageProblem(candidate);if(issue){error.value=issue;event.target.value='';return}
+ if(objectUrl)URL.revokeObjectURL(objectUrl)
+ objectUrl=URL.createObjectURL(candidate);file.value=candidate;form.value.photo=objectUrl;error.value='';notice.value=''
 }
-
-const handlePhotoSelect = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    
-    // Local preview
-    photoPreview.value = URL.createObjectURL(file)
-    
-    // Store file for upload on save
-    profile.value._newPhotoFile = file
-}
-
-const saveProfile = async () => {
-    saving.value = true
-    
-    // 1. Upload Photo if changed
-    if (profile.value._newPhotoFile) {
-        const file = profile.value._newPhotoFile
-        const fileExt = file.name.split('.').pop()
-        const filePath = `${user.value.id}/avatar.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-            .from('art-center-assets')
-            .upload(filePath, file, { upsert: true })
-            
-        if (!uploadError) {
-             const { data: { publicUrl } } = supabase.storage
-                .from('art-center-assets')
-                .getPublicUrl(filePath)
-            profile.value.photo = publicUrl
-        }
-    }
-
-    // 2. Upsert Profile
-    const updates = {
-        id: user.value.id, // Explicitly linking Auth ID to Artist ID
-        name: profile.value.name,
-        specialty: profile.value.specialty,
-        long_bio: profile.value.long_bio,
-        photo: profile.value.photo,
-        socials: profile.value.socials
-    }
-
-    const { error } = await supabase
-        .from('artists')
-        .upsert(updates)
-
-    if (error) {
-        console.error('Error saving profile:', error)
-        alert('Failed to save profile')
-    } else {
-        // success
-        router.push('/admin/dashboard')
-    }
-    saving.value = false
+onUnmounted(()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)})
+async function save(){
+ if(busy.value)return
+ error.value='';notice.value=''
+ if(!user.value)return
+ if(!form.value.name.trim()){error.value='Add the name you want collectors to see.';return}
+ for(const url of [form.value.socials.instagram,form.value.socials.website])if(url.trim()&&!safeExternalUrl(url.trim())){error.value='Use a full website address beginning with https:// or http://.';return}
+ busy.value=true
+ try{
+  const photo=file.value?await uploadStudioImage(supabase,user.value.id,file.value):form.value.photo
+  form.value.photo=photo;file.value=null
+  const data={id:user.value.id,name:form.value.name.trim(),specialty:form.value.specialty.trim(),long_bio:form.value.long_bio.trim(),photo,socials:{...form.value.socials,instagram:form.value.socials.instagram.trim(),website:form.value.socials.website.trim()}}
+  const {error:failure}=await supabase.from('artists').upsert(data)
+  if(failure)throw failure
+  form.value={...data};delete form.value.id;file.value=null;baseline.value=JSON.stringify(form.value)
+  await refresh();notice.value='Your profile is saved. This is how collectors will see you.'
+ }catch{error.value='Your profile couldn’t be saved. Your changes are still here—please try again.'}
+ finally{busy.value=false}
 }
 </script>
-
-<template>
-    <div class="min-h-screen p-6 md:p-12 font-sans text-zinc-900 relative z-20">
-        <!-- Header -->
-        <header class="flex justify-between items-end mb-16 md:mb-24 border-b border-zinc-200 pb-6">
-            <div>
-                <h1 class="text-sm font-bold uppercase tracking-[0.4em] mb-2">Persona Editor</h1>
-                <p class="text-xs uppercase tracking-widest text-zinc-400">Define how the world perceives the curator.</p>
-            </div>
-            <button @click="router.push('/admin/dashboard')" class="text-xs uppercase font-bold tracking-widest hover:text-zinc-500 transition">Back to Ledger</button>
-        </header>
-
-        <div v-if="loading" class="opacity-50 text-sm font-bold uppercase tracking-widest text-center">Retrieving dossier...</div>
-
-        <div v-else class="max-w-3xl mx-auto">
-            <!-- Profile Photo -->
-            <div class="mb-16 flex flex-col items-center">
-                <div class="w-48 h-48 md:w-64 md:h-64 bg-zinc-50 border border-zinc-100 rounded-apple overflow-hidden group cursor-pointer shadow-2xl relative transition hover:scale-105 duration-500">
-                    <img v-if="photoPreview" :src="photoPreview" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
-                    <div v-else class="w-full h-full flex flex-col items-center justify-center opacity-30 text-xs font-bold uppercase tracking-widest">
-                        <span>Upload</span>
-                        <span>Portrait</span>
-                    </div>
-                    
-                    <input type="file" @change="handlePhotoSelect" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10" />
-                </div>
-                <p class="mt-8 text-xs uppercase tracking-[0.2em] font-bold opacity-40">Click to Update</p>
-            </div>
-
-            <div class="space-y-12">
-                <div class="group">
-                    <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Full Name</label>
-                    <input v-model="profile.name" type="text" class="w-full bg-transparent border-b border-zinc-200 py-4 outline-none font-bold text-4xl md:text-6xl placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="Elas Thorne">
-                </div>
-
-                <div class="group">
-                    <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Artistic Specialty</label>
-                    <input v-model="profile.specialty" type="text" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none font-medium text-2xl placeholder-zinc-200 focus:border-zinc-400 transition-colors text-zinc-600" placeholder="Brutalist Sculpture">
-                </div>
-
-                <div class="group">
-                    <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Biography</label>
-                    <textarea v-model="profile.long_bio" rows="8" class="w-full bg-transparent border-b border-zinc-200 py-4 outline-none text-xl md:text-2xl font-light leading-relaxed placeholder-zinc-200 focus:border-zinc-400 transition-colors resize-none" placeholder="Write your manifesto..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div class="group">
-                        <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Instagram URL</label>
-                        <input v-model="profile.socials.instagram" type="url" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none text-base font-medium placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="https://instagram.com/...">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs uppercase tracking-widest mb-3 text-zinc-400 font-bold">Website URL</label>
-                        <input v-model="profile.socials.website" type="url" class="w-full bg-transparent border-b border-zinc-200 py-3 outline-none text-base font-medium placeholder-zinc-200 focus:border-zinc-400 transition-colors" placeholder="https://...">
-                    </div>
-                </div>
-
-                <div class="pt-16 flex justify-center md:justify-end">
-                    <button @click="saveProfile" :disabled="saving" class="bg-black text-white px-12 py-6 rounded-full text-xs uppercase font-bold tracking-[0.2em] hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xl hover:scale-105">
-                        {{ saving ? 'Updating Records...' : 'Save Persona' }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
+<template><ArtistLayout section="Artist profile">
+ <header class="studio-page-heading"><div><p class="studio-eyebrow">More than a name on the wall.</p><h1>The person<br>behind <em>the piece.</em></h1><p>Tell your story in your own words.</p></div><RouterLink v-if="publicLink" :to="publicLink" class="pill">View public profile ↗</RouterLink></header>
+ <PaintLoader v-if="loading" label="Opening your artist profile…"/>
+ <div v-else-if="problem" class="studio-empty" role="alert"><h2>Your story is taking a moment.</h2><p>{{problem}}</p><button class="pill" @click="refresh">Try again ↗</button></div>
+ <form v-else class="studio-profile-grid" @submit.prevent="save">
+  <aside class="studio-profile-preview"><div class="studio-profile-photo"><GalleryImage v-if="form.photo" :src="form.photo" :alt="form.name || 'Your portrait'" eager/><div v-else class="studio-portrait-placeholder"><span>{{form.name?.slice(0,1) || '↗'}}</span><p>A face to<br>the name.</p></div><label class="studio-upload-control"><input type="file" accept="image/jpeg,image/png,image/webp" @change="selectPhoto" :disabled="busy" aria-label="Choose profile portrait"><span>{{form.photo?'Change portrait':'Add a portrait'}} ↗</span></label></div><p class="studio-field-hint">JPG, PNG or WebP · Up to 10 MB<br>A portrait helps collectors connect with you.</p><div class="studio-profile-preview-copy"><p class="studio-eyebrow">Your profile, at a glance</p><h2>{{form.name || 'Your name here.'}}</h2><p>{{form.specialty || 'Your medium. Your point of view.'}}</p><blockquote>{{form.long_bio || 'Every artist has a story. This is a place for yours.'}}</blockquote></div></aside>
+  <div class="studio-form"><fieldset :disabled="busy"><legend><span>01</span> An introduction</legend><div class="studio-field"><label for="artist-name">Artist name <span>Required</span></label><input id="artist-name" v-model="form.name" required maxlength="150" autocomplete="name" placeholder="The name on your work"></div><div class="studio-field"><label for="artist-medium">Your medium or specialty</label><input id="artist-medium" v-model="form.specialty" maxlength="200" placeholder="Painting, photography, a little of everything…"></div><div class="studio-field"><label for="artist-bio">Your story <span>Optional</span></label><textarea id="artist-bio" v-model="form.long_bio" rows="9" maxlength="12000" placeholder="Where you began. What moves you. What you’re exploring now."></textarea><span class="studio-field-hint">Write in your own voice. This appears on your public artist page.</span></div></fieldset>
+   <fieldset :disabled="busy"><legend><span>02</span> Keep the conversation going</legend><div class="studio-field"><label for="artist-instagram">Instagram <span>Optional</span></label><input id="artist-instagram" v-model="form.socials.instagram" type="url" maxlength="2000" placeholder="https://instagram.com/yourname"></div><div class="studio-field"><label for="artist-website">Website <span>Optional</span></label><input id="artist-website" v-model="form.socials.website" type="url" maxlength="2000" placeholder="https://yourstudio.com"></div></fieldset>
+   <p v-if="error" class="studio-notice error" role="alert">{{error}}</p><p v-if="notice" class="studio-notice success" role="status">{{notice}}</p><PaintLoader v-if="busy" label="Putting your story on the wall…"/>
+   <div class="studio-savebar"><p>{{dirty?'You have unsaved changes.':'Your public introduction, made by you.'}}</p><div><button type="button" class="studio-secondary" :disabled="busy || !dirty" @click="reset">Reset changes</button><button class="pill studio-primary" :disabled="busy">{{busy?'Saving…':'Save profile'}} ↗</button></div></div>
+  </div>
+ </form>
+</ArtistLayout></template>

@@ -4,7 +4,7 @@ import {createServer} from 'vite'
 import {createSSRApp,h} from 'vue'
 import {renderToString} from 'vue/server-renderer'
 
-const server = await createServer({server:{middlewareMode:true,hmr:false,ws:false},appType:'custom'})
+const server = await createServer({optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false,ws:false},appType:'custom'})
 const {default:CollectionState} = await server.ssrLoadModule('/src/components/CollectionState.vue')
 async function render(props) {
   const app=createSSRApp({render:()=>h(CollectionState,props)})
