@@ -1,23 +1,22 @@
+<script setup>
+import { computed, ref } from 'vue'
+import { useCollection } from '../composables/useCollection'
+import ArtworkCard from '../components/ArtworkCard.vue'
+import CollectionState from '../components/CollectionState.vue'
+import GalleryRoom from '../components/GalleryRoom.vue'
+const {artworks, loading, problem, refresh} = useCollection()
+const featured = computed(() => artworks.value.slice(0,8))
+const room = ref(false)
+</script>
 <template>
-  <section class="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-    <div class="max-w-4xl pt-20 md:pt-0">
-        <p v-reveal class="text-zinc-800 uppercase tracking-[0.5em] text-[10px] mb-6">Established 2026</p>
-        <h1 v-reveal="{ delay: 0.1 }" class="text-6xl sm:text-7xl md:text-9xl font-bold tracking-tighter mb-10 leading-[0.9]">THE ART<br>CENTER</h1>
-        <div class="flex flex-col md:flex-row items-center gap-12 mt-12 md:mt-16 text-left border-t border-transparent pt-12 w-full">
-            <p v-reveal="{ delay: 0.2 }" class="md:w-1/2 text-lg md:text-xl text-zinc-800 font-light leading-relaxed">
-                A digital sanctuary where geometry meets human emotion. We curate objects that redefine spaces through minimalism and silent strength.
-            </p>
-            <div class="md:w-1/2 grid grid-cols-2 gap-8 w-full">
-                <div v-reveal="{ delay: 0.3 }">
-                    <h4 class="font-bold text-sm">Curation</h4>
-                    <p class="text-xs text-zinc-600 mt-2">Sourced globally from neo-minimalist studios.</p>
-                </div>
-                <div v-reveal="{ delay: 0.4 }">
-                    <h4 class="font-bold text-sm">Visualizer</h4>
-                    <p class="text-xs text-zinc-600 mt-2">Proprietary tech to see art in your environment.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-  </section>
+  <div class="home-page">
+    <section class="hero-composition" :class="{'has-art': featured.length, 'compact-collection': featured.length > 0 && featured.length <= 5}" aria-labelledby="hero-heading">
+      <div class="hero-copy"><h1 id="hero-heading">Beyond borders.<br>Within reach.</h1><p>Art from different worlds.<br>Stories that bring us closer.</p><RouterLink to="/gallery" class="pill">Explore the gallery <span aria-hidden="true">↗</span></RouterLink></div>
+      <div class="hero-notes"><span>↗ &nbsp; Original perspectives.</span><span>↗ &nbsp; Meet the makers.</span><button v-if="featured.length" @click="room = true">↗ &nbsp; Explore in motion.</button><span v-else>↗ &nbsp; A world of possibility.</span></div>
+      <template v-if="featured.length"><ArtworkCard v-for="(art,index) in featured" :key="art.id" :art="art" eager :class="`hero-art hero-art-${index}`" /></template>
+      <template v-else><div class="empty-frame frame-one" aria-hidden="true"><span>Room for<br>a new perspective.</span></div><div class="empty-frame frame-two" aria-hidden="true"><span>Art<br>belongs<br>here.</span><i>↗</i></div><div class="hero-empty"><CollectionState :loading="loading" :problem="problem" @retry="refresh" /></div></template>
+    </section>
+    <section class="home-invitation"><p>A gallery without borders.</p><h2>Find a piece that stays with you.<br>Meet the person behind it.</h2><RouterLink to="/artists" class="text-link">Discover the artists <span aria-hidden="true">↗</span></RouterLink></section>
+    <GalleryRoom v-if="room" :items="artworks" @close="room = false" />
+  </div>
 </template>

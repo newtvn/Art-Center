@@ -1,64 +1,52 @@
 <script setup>
-import { computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import CustomCursor from './components/CustomCursor.vue'
-
+import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useCollection } from './composables/useCollection'
+import PaintTransition from './components/PaintTransition.vue'
+import { useAuth } from './composables/useAuth'
+const { user, signOut } = useAuth()
+const paint = ref(null)
+async function leavePage(_el, done) { try { await paint.value?.cover() } finally { done() } }
+async function enterPage(_el, done) { try { await paint.value?.reveal() } finally { done() } }
 const route = useRoute()
+const { categories, refresh } = useCollection()
 const isAdmin = computed(() => route.path.startsWith('/admin'))
+const menuOpen = ref(false)
+const menuButton = ref(null)
+const menuPanel = ref(null)
+async function closeMenu(returnFocus = false) {
+  menuOpen.value = false
+  if (returnFocus) { await nextTick(); menuButton.value?.focus() }
+}
+function outside(event) { if (!menuPanel.value?.contains(event.target) && !menuButton.value?.contains(event.target)) closeMenu() }
+function escape(event) { if (event.key === 'Escape' && menuOpen.value) closeMenu(true) }
+watch(() => route.fullPath, (to, from) => {
+  closeMenu()
+  if (from?.startsWith('/admin') && !to.startsWith('/admin')) refresh()
+})
+watch(menuOpen, async value => { if (value) { await nextTick(); menuPanel.value?.querySelector('a')?.focus() } })
+onMounted(() => { document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape) })
+onUnmounted(() => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape) })
 </script>
-
 <template>
-  <CustomCursor />
-  <div class="relative min-h-screen flex flex-col font-sans cursor-none text-zinc-900">
-    <!-- Old Gazette Background -->
-    <!-- Old Gazette Background -->
-    <div class="fixed inset-0 z-0 pointer-events-none">
-        <!-- Base Parchment Color -->
-        <div class="absolute inset-0 bg-[#E8E4D9]"></div>
-        
-        <!-- Subtle Cracks/Veins -->
-        <div class="absolute inset-0 opacity-40 mix-blend-multiply bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxmaWx0ZXIgaWQ9ImNyYWNrcyI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMDAxIiBudW1PY3RhdmVzPSI1IiByZXN1bHQ9Im5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ibWF0cml4IiB2YWx1ZXM9IjAgMCAwIDAgMC40ICAwIDAgMCAwIDAuNCAgMCAwIDAgMCAwLjQgIDAgMCAwIDUwIC0zMCIgaW49Im5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2NyYWNrcykiLz48L3N2Zz4=')]"></div>
-
-        <!-- Noise Texture -->
-        <div class="absolute inset-0 opacity-70 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNjUiIG51bU9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlci4+PHJlY3Qgd2lkdGg9IjEwMCUiIGheiWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+')]"></div>
-    </div>
-
-    <!-- Navigation -->
-    <nav v-if="!isAdmin" class="fixed top-4 md:top-8 left-1/2 -translate-x-1/2 z-50 glass px-6 py-4 md:px-10 md:py-5 rounded-full shadow-2xl flex items-center justify-between md:justify-center gap-5 md:gap-12 text-[10px] md:text-xs font-bold uppercase tracking-widest whitespace-nowrap w-[90%] max-w-[400px] md:w-auto md:max-w-none">
-      <router-link to="/" class="cursor-pointer hover:text-zinc-400 transition" active-class="text-zinc-500">Concept</router-link>
-      <router-link to="/gallery" class="cursor-pointer hover:text-zinc-400 transition" active-class="text-zinc-500">Collection</router-link>
-      <router-link to="/curators" class="cursor-pointer hover:text-zinc-400 transition" active-class="text-zinc-500">Curators</router-link>
-      <a href="#contact" class="hover:text-zinc-400 transition">Contact</a>
-    </nav>
-
-    <!-- Main Content -->
-    <main class="relative z-10 flex-grow">
-      <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </transition>
-      </router-view>
-    </main>
-
-    <!-- Footer -->
-    <footer v-if="!isAdmin" class="relative z-10 mt-auto py-20 px-6 border-t border-transparent text-center opacity-60">
-        <p class="text-[10px] font-bold tracking-[0.4em] uppercase mb-4">The Art Center © 2026</p>
-        <div class="text-xs space-y-2">
-            <p>Designed by <span class="text-black font-bold">The Mind of S I R R</span></p>
-            <p>Contact: <a href="tel:0110952788" class="underline">0110952788</a></p>
-        </div>
-    </footer>
-  </div>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header v-if="!isAdmin" class="site-header">
+    <RouterLink to="/" class="brand" aria-label="Art Center home"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="22" cy="12" r="10" fill="currentColor"/><circle cx="22" cy="12" r="4" fill="white"/><circle cx="7" cy="15" r="3" fill="currentColor"/></svg><span>Art Center.</span></RouterLink>
+    <div class="header-note">Independent art. Shared everywhere.</div>
+    <button ref="menuButton" class="menu-toggle" :aria-expanded="menuOpen" aria-controls="site-menu" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" @click="menuOpen = !menuOpen"><span>{{ menuOpen ? 'Close' : 'Menu' }}</span><i :class="{open:menuOpen}" aria-hidden="true"><b></b><b></b></i></button>
+    <Transition name="menu">
+      <nav v-if="menuOpen" id="site-menu" ref="menuPanel" class="menu-panel" aria-label="Main navigation" @focusout="event => { if (event.relatedTarget && !menuPanel?.contains(event.relatedTarget) && event.relatedTarget !== menuButton) closeMenu() }">
+        <RouterLink to="/" class="menu-primary">Home <span>↗</span></RouterLink>
+        <RouterLink to="/gallery" class="menu-primary">The gallery <span>↗</span></RouterLink>
+        <div class="menu-categories"><RouterLink v-for="category in categories.slice(1)" :key="category" :to="{name:'gallery', query:{category}}">{{ category }}</RouterLink></div>
+        <RouterLink to="/artists" class="menu-primary">The artists <span>↗</span></RouterLink>
+        <RouterLink v-if="!user" to="/login" class="menu-primary">Collector sign-in <span>↗</span></RouterLink>
+        <button v-else class="menu-studio" @click="signOut">Sign out</button>
+        <RouterLink to="/admin/login" class="menu-studio">Artist sign-in <span>↗</span></RouterLink>
+      </nav>
+    </Transition>
+  </header>
+  <PaintTransition ref="paint" />
+  <main id="main" tabindex="-1"><RouterView v-slot="{ Component }"><Transition :css="false" mode="out-in" appear @before-enter="paint?.prepare()" @leave="leavePage" @enter="enterPage"><component :is="Component" :key="route.path" /></Transition></RouterView></main>
+  <footer v-if="!isAdmin" class="site-footer"><RouterLink to="/" class="footer-brand">Art has a way<br>of bringing us together.</RouterLink><div><RouterLink to="/gallery">Explore the gallery</RouterLink><RouterLink to="/artists">Meet the artists</RouterLink><RouterLink to="/admin/login">Your artist space</RouterLink></div><p>Art Center © {{ new Date().getFullYear() }}<br>A space for every perspective.</p></footer>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

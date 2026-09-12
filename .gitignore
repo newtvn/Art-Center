@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .env
 .env.local
+
+# Local design preview sessions
+.superpowers/
+
+# Private backend credentials
+supabase_keys.txt
