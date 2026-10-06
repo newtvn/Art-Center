@@ -30,3 +30,5 @@ dist-ssr
 
 # Private backend credentials
 supabase_keys.txt
+.vercel
+.env*.local

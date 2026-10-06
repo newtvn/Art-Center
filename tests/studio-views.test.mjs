@@ -25,7 +25,7 @@ test.after(async()=>{await server.close();delete globalThis.__studioWorkspace;de
 test('new artist dashboard shows onboarding without another artist or placeholder portrait',async()=>{
  const html=await render('AdminDashboard')
  assert.match(html,/Every collection starts/);assert.match(html,/Complete your profile/)
- assert.doesNotMatch(html,/via.placeholder|Elas|<img/)
+ assert.doesNotMatch(html,/via.placeholder|Elas/);assert.equal((html.match(/<img[^>]+>/g)||[]).filter(tag=>!tag.includes('class="brand-logo"')).length,0)
  assert.match(html,/aria-current="page"/)
 })
 test('dashboard renders owned artwork and a personalized greeting',async()=>{
@@ -58,4 +58,15 @@ test('artist login offers passwordless entry without hiding the password option'
  const html=await render('AdminLogin',{path:'/admin/login',user:null})
  assert.match(html,/Email link/);assert.match(html,/Password/);assert.match(html,/Send me a sign-in link/)
  assert.match(html,/autocomplete="email"/);assert.doesNotMatch(html,/Identity|Cipher|Authorized Personnel/)
+})
+test('upload presents country suggestions, artist ownership and numeric size fields',async()=>{
+ const html=await render('ArtManager',{path:'/admin/artworks?new=1',profile:{name:'Maya'},artworks:[]})
+ for(const field of ['art-origin','art-artist','art-length','art-width','art-depth']) assert.match(html,new RegExp(`for="${field}"`))
+ assert.match(html,/value="Maya"/)
+ assert.match(html,/Drawing/)
+ assert.match(html,/art-center-logo.png/)
+})
+test('artist collection offers country, price and length filters',async()=>{
+ const html=await render('ArtManager',{path:'/admin/artworks',profile:{name:'Maya'},artworks:[artwork]})
+ for(const label of ['Country','Minimum price','Maximum price','Minimum length','Maximum length']) assert.ok(html.includes(label))
 })

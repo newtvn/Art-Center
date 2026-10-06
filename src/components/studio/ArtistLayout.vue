@@ -1,4 +1,5 @@
 <script setup>
+import BrandLogo from '../BrandLogo.vue'
 import {computed,ref,watch} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {useArtistWorkspace} from '../../composables/useArtistWorkspace'
@@ -20,7 +21,7 @@ async function leave(){
 <template>
  <div class="studio-shell">
   <aside class="studio-rail">
-   <RouterLink to="/" class="studio-brand" aria-label="Art Center home"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="22" cy="12" r="10" fill="currentColor"/><circle cx="22" cy="12" r="4" fill="white"/><circle cx="7" cy="15" r="3" fill="currentColor"/></svg><span>Art Center.</span></RouterLink>
+   <RouterLink to="/" class="studio-brand" aria-label="Art Center home"><BrandLogo /></RouterLink>
    <div class="studio-rail-title"><span class="studio-eyebrow">For the makers</span><p>The artist’s<br>ledger.</p></div>
    <nav class="studio-nav" aria-label="Artist workspace"><RouterLink v-for="link in links" :key="link.path" :to="link.path" :class="{active:route.path===link.path}" :aria-current="route.path===link.path?'page':undefined"><span>{{link.number}}</span>{{link.label}}<b aria-hidden="true">↗</b></RouterLink></nav>
    <div class="studio-rail-foot"><p>A space to make<br>your mark.</p><RouterLink to="/gallery">Visit the gallery <span aria-hidden="true">↗</span></RouterLink></div>

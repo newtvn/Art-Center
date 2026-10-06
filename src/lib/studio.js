@@ -1,3 +1,4 @@
+import {dimensionsText} from './dimensions.js'
 export async function loadArtistWorkspace(client, id) {
  if (!id) throw new Error('Sign in to open your studio.')
  const results = await Promise.all([
@@ -15,7 +16,7 @@ export function imageProblem(file) {
 }
 export function artworkPayload(form, artistId, image) {
  const text=value=>String(value || '').trim()
- return {artist_id:artistId,title:text(form.title),image,price:form.price==='' || form.price==null?null:Number(form.price),year:text(form.year),category:text(form.category),dimensions:text(form.dimensions),origin:text(form.origin),long_history:text(form.long_history),inspiration_text:text(form.inspiration_text)}
+ return {artist_id:artistId,title:text(form.title),image,price:form.price==='' || form.price==null?null:Number(form.price),year:text(form.year),category:text(form.category),dimensions:dimensionsText(form),origin:text(form.origin),long_history:text(form.long_history),inspiration_text:text(form.inspiration_text)}
 }
 export function profileProgress(profile) {
  return [{label:'Add your name',done:!!profile?.name?.trim()},{label:'Choose a portrait',done:!!profile?.photo},{label:'Share your medium',done:!!profile?.specialty?.trim()},{label:'Tell your story',done:!!profile?.long_bio?.trim()}]

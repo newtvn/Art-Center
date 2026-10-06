@@ -1,4 +1,5 @@
 <script setup>
+import BrandLogo from '../../components/BrandLogo.vue'
 import {computed,ref,watch,onMounted} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {supabase} from '../../lib/supabaseClient'
@@ -30,7 +31,7 @@ function switchMethod(value){method.value=value;error.value='';password.value=''
 </script>
 <template>
  <div class="studio-login">
-  <header class="studio-login-header"><RouterLink to="/" class="studio-brand"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="22" cy="12" r="10" fill="currentColor"/><circle cx="22" cy="12" r="4" fill="white"/><circle cx="7" cy="15" r="3" fill="currentColor"/></svg><span>Art Center.</span></RouterLink><RouterLink to="/gallery" class="text-link">Back to the gallery ↗</RouterLink></header>
+  <header class="studio-login-header"><RouterLink to="/" class="studio-brand"><BrandLogo /></RouterLink><RouterLink to="/gallery" class="text-link">Back to the gallery ↗</RouterLink></header>
   <div class="studio-login-grid"><section class="studio-login-story"><p class="studio-eyebrow">For the makers. The thinkers. The originals.</p><h1>Your art.<br>Your story.<br><em>Your space.</em></h1><p>A place to gather your work, share your perspective,<br>and connect with the people who see it.</p><div class="studio-login-art" aria-hidden="true"><span></span><i></i><b>Make<br>your mark.</b></div><span class="studio-login-caption">The artist’s ledger / Art Center</span></section>
    <section class="studio-login-form"><p class="studio-eyebrow">Come on in / 01</p><h2>{{sent?'Check your inbox.':'Welcome to your studio.'}}</h2><p>{{sent?'Your next chapter is one click away.':'Sign in to the artist’s ledger. New here? Start with an email link.'}}</p>
     <template v-if="sent"><div class="studio-email-sent" role="status"><span aria-hidden="true">↗</span><p>We sent a sign-in link to<br><strong>{{email}}</strong>.</p><p>Open it to enter your studio. If it hasn’t arrived, check your spam folder.</p></div><button class="text-link" @click="sent=false">Use another email or try again ↗</button></template>

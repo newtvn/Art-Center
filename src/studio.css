@@ -1605,3 +1605,7 @@
     transform: none;
   }
 }
+.studio-brand .brand-logo { width: 194px; height: auto; }
+.studio-shell .artwork-filter-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+@media(max-width:1000px) { .studio-shell .artwork-filter-grid { grid-template-columns: minmax(0,1fr); } }
+@media(max-width:600px) { .studio-brand .brand-logo { width: 162px; } }

@@ -59,3 +59,11 @@ The artist workspace at `/admin/dashboard` now shares the public gallery's visua
 The overview and artwork collection fetch only the signed-in artist's records. A new artist creates a profile first, then publishes pieces. Artwork management includes search, medium filters, existing-piece editing, original-image previews, story and inspiration fields, and auction settings. The profile editor previews the portrait, name, medium and story as they are entered. Uploads accept JPG, PNG and WebP up to 10 MB. Save errors retain entered changes for retry. No demonstration profiles, artworks or sales totals are substituted.
 
 Ledger styles live in `src/studio.css`; shared navigation lives in `src/components/studio/ArtistLayout.vue`. Unit and server-rendered UI checks are included in `tests/studio*.test.mjs`.
+
+## Marketplace discovery and identity
+
+The gallery combines text and medium search with country of origin, artist name, USD price ranges, and length ranges in centimetres. The artist's artwork collection offers the same country, price, and length controls for owned pieces. Drawing, printmaking, ceramics, and textile are included in the supported art types.
+
+When publishing or editing a piece, artists can search country suggestions and enter length, width, and optional depth in centimetres. Artist attribution comes from the signed-in artist profile. Countries use the existing `artworks.origin` column; physical measurements use `artworks.dimensions` in `length × width × depth cm` form. No new database columns or migration are required. Older numeric dimensions with explicit cm, mm, m, or inch units can be searched by length; unrecognised size descriptions remain editable. Pieces without a known price or length appear in the unfiltered gallery and are excluded only when the corresponding numeric range is applied. Older location entries such as city names are preserved; artists can edit those to a country to improve country discovery.
+
+The generated logo is stored in `public/art-center-logo.png` and shared through `BrandLogo.vue` across the public header/footer, artist login and artist workspace. `public/logo.svg` is a small matching frame/A symbol for the browser icon.

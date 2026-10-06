@@ -1,4 +1,4 @@
-const fields=['title','category','year','price','dimensions','origin','long_history','inspiration_text','image']
+const fields=['title','category','year','price','dimensions','lengthCm','widthCm','depthCm','origin','long_history','inspiration_text','image']
 export function readArtworkDraft(storage,key) {
  try {
   const data=JSON.parse(storage.getItem(key))

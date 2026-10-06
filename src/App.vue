@@ -1,4 +1,5 @@
 <script setup>
+import BrandLogo from './components/BrandLogo.vue'
 import { computed, nextTick, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCollection } from './composables/useCollection'
@@ -31,7 +32,7 @@ onUnmounted(() => { document.removeEventListener('pointerdown', outside); docume
 <template>
   <a class="skip-link" href="#main">Skip to content</a>
   <header v-if="!isAdmin" class="site-header">
-    <RouterLink to="/" class="brand" aria-label="Art Center home"><svg viewBox="0 0 40 32" aria-hidden="true"><circle cx="22" cy="12" r="10" fill="currentColor"/><circle cx="22" cy="12" r="4" fill="white"/><circle cx="7" cy="15" r="3" fill="currentColor"/></svg><span>Art Center.</span></RouterLink>
+    <RouterLink to="/" class="brand" aria-label="Art Center home"><BrandLogo /></RouterLink>
     <div class="header-note">Independent art. Shared everywhere.</div>
     <button ref="menuButton" class="menu-toggle" :aria-expanded="menuOpen" aria-controls="site-menu" :aria-label="menuOpen ? 'Close menu' : 'Open menu'" @click="menuOpen = !menuOpen"><span>{{ menuOpen ? 'Close' : 'Menu' }}</span><i :class="{open:menuOpen}" aria-hidden="true"><b></b><b></b></i></button>
     <Transition name="menu">
@@ -48,5 +49,5 @@ onUnmounted(() => { document.removeEventListener('pointerdown', outside); docume
   </header>
   <PaintTransition ref="paint" />
   <main id="main" tabindex="-1"><RouterView v-slot="{ Component }"><Transition :css="false" mode="out-in" appear @before-enter="paint?.prepare()" @leave="leavePage" @enter="enterPage"><component :is="Component" :key="route.path" /></Transition></RouterView></main>
-  <footer v-if="!isAdmin" class="site-footer"><RouterLink to="/" class="footer-brand">Art has a way<br>of bringing us together.</RouterLink><div><RouterLink to="/gallery">Explore the gallery</RouterLink><RouterLink to="/artists">Meet the artists</RouterLink><RouterLink to="/admin/login">Your artist space</RouterLink></div><p>Art Center © {{ new Date().getFullYear() }}<br>A space for every perspective.</p></footer>
+  <footer v-if="!isAdmin" class="site-footer"><RouterLink to="/" class="footer-brand"><BrandLogo /><span>Art has a way<br>of bringing us together.</span></RouterLink><div><RouterLink to="/gallery">Explore the gallery</RouterLink><RouterLink to="/artists">Meet the artists</RouterLink><RouterLink to="/admin/login">Your artist space</RouterLink></div><p>Art Center © {{ new Date().getFullYear() }}<br>A space for every perspective.</p></footer>
 </template>

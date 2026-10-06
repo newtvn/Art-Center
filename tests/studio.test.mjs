@@ -30,3 +30,10 @@ test('studio login redirects stay inside supported artist routes',()=>{
  assert.equal(studioReturnPath('/admin/artworks'),'/admin/artworks')
  for(const value of ['//evil.test','https://evil.test','/admin/login','/admin/unknown',null])assert.equal(studioReturnPath(value),'/admin/dashboard')
 })
+
+test('upload length, width and depth are saved as searchable centimetre dimensions',()=>{
+ const result=artworkPayload({title:'Study',origin:' Kenya ',lengthCm:'60',widthCm:'80',depthCm:'2',dimensions:'old size'},'artist-a','image.jpg')
+ assert.equal(result.dimensions,'60 × 80 × 2 cm')
+ assert.equal(result.origin,'Kenya')
+ assert.equal(artworkPayload({title:'Digital',lengthCm:'',dimensions:'Variable'},'a','b').dimensions,'Variable')
+})
