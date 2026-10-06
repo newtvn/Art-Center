@@ -11,7 +11,7 @@ const auction=computed(()=>auctions.value.find(a=>a.artwork_id===props.art.id))
   <article class="art-card">
     <RouterLink :to="{name:'art-detail', params:{id:art.id}}" class="art-image-link" :aria-label="`View ${art.title}`">
       <GalleryImage :src="art.image" :alt="art.title" :eager="eager" />
-      <span class="art-open" aria-hidden="true">↗</span>
+      <span v-if="art.sold_at" class="sold-badge">Sold</span><span class="art-open" aria-hidden="true">↗</span>
     </RouterLink>
     <div class="art-caption">
       <RouterLink :to="{name:'art-detail', params:{id:art.id}}">{{ art.title }}</RouterLink>

@@ -50,7 +50,7 @@ Checks: `node --test tests/*.test.mjs` and `npm run build`.
 
 ## Auctions and collector login
 
-Collectors can sign in by email at `/login`. Artists can configure timed auctions in the inventory registry. Before live bidding is available, apply `supabase/migrations/202609110002_auctions.sql` and configure Supabase's email redirect URLs. See [auction setup and verification](docs/auctions.md). Payment integration is deferred.
+Collectors can sign in by email at `/login`. Artists can configure timed auctions in the inventory registry. Before live bidding is available, apply `supabase/migrations/202609110002_auctions.sql` and configure Supabase's email redirect URLs. See [auction setup and verification](docs/auctions.md). Pesapal payments are described in [docs/payments.md](docs/payments.md).
 
 ## Artist ledger
 
