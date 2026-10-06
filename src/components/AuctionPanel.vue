@@ -34,11 +34,11 @@ async function bid() {
    <div class="auction-clock"><span>{{ended?'Time is up':'Time remaining'}}</span><strong :role="ended?'status':undefined">{{countdown(auction.ends_at,now)}}</strong></div>
    <p class="auction-date">{{ended?'Closed':'Closes'}} <time :datetime="auction.ends_at">{{date(auction.ends_at)}}</time></p>
    <p class="auction-date">{{auction.last_bid_at?'Last bid: '+date(auction.last_bid_at):'Be the first to place a bid.'}}</p>
-   <template v-if="!ended && !problem">
+   <template v-if="!ended && !problem && !art.sold_at">
     <p v-if="user?.id===art.artist_id" class="form-hint">This is your piece. Collectors can bid until the closing time.</p>
     <form v-else-if="user" @submit.prevent="bid" class="bid-form"><label :for="'bid-'+art.id">Your bid (USD)</label><div class="bid-entry"><input :id="'bid-'+art.id" v-model="amount" type="number" inputmode="decimal" :min="minimumBid(auction)" step="0.01" max="9999999999.99" :placeholder="minimumBid(auction).toFixed(2)" required :disabled="busy"><button class="pill" :disabled="busy">{{busy?'Placing…':'Place bid'}} ↗</button></div><p class="form-hint">Minimum {{money(minimumBid(auction))}} · Increment {{money(auction.bid_increment)}}</p></form>
     <RouterLink v-else-if="ready" :to="{path:'/login',query:{next:route.path}}" class="pill">Sign in to bid <span aria-hidden="true">↗</span></RouterLink>
-    <p class="form-hint">No payment is collected here yet.</p>
+    <p class="form-hint">Bids are binding. The winner pays securely through Pesapal after the auction closes.</p>
    </template>
    <p v-else-if="ended" class="form-hint">{{auction.bid_count?'Bidding has finished.':'This auction ended without any bids.'}}</p>
    <PaintLoader v-if="busy" label="Placing your bid…"/>

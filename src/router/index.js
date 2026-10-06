@@ -14,6 +14,7 @@ const router = createRouter({
         { path: '/artists', alias: '/curators', name: 'artists', component: Artists },
         { path: '/artists/:name', alias: '/curators/:name', name: 'artist-detail', component: ArtistDetail },
         { path: '/gallery/:id', name: 'art-detail', component: ArtDetail, props: true },
+        { path: '/checkout/return', name: 'checkout-return', component: () => import('../views/CheckoutReturn.vue') },
         { path: '/:pathMatch(.*)*', redirect: '/gallery' },
         { path: '/login', name: 'login', component: () => import('../views/Login.vue') },
         // Admin Routes
