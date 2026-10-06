@@ -11,6 +11,7 @@ const server=await createServer({optimizeDeps:{noDiscovery:true,include:[]},serv
 }]})
 const views={}
 for(const view of ['AdminDashboard','ArtManager','ProfileEditor','AdminLogin'])views[view]=(await server.ssrLoadModule(`/src/views/admin/${view}.vue`)).default
+views.Login=(await server.ssrLoadModule('/src/views/Login.vue')).default
 const artwork={id:'piece-a',artist_id:'artist-a',title:'Quiet light',image:'/fixture-image.jpg',category:'Painting',year:'2026',price:1200}
 async function render(view,{profile=null,artworks=[],path='/admin/dashboard',problem='',user={id:'artist-a',email:'artist@example.test'}}={}){
  globalThis.__studioWorkspace={profile:ref(profile),artworks:ref(artworks),loading:ref(false),problem:ref(problem),user:ref(user),refresh:()=>{}}
@@ -56,7 +57,7 @@ test('profile editor has accessible labels, live preview and save action',async(
 })
 test('artist login offers passwordless entry without hiding the password option',async()=>{
  const html=await render('AdminLogin',{path:'/admin/login',user:null})
- assert.match(html,/Email link/);assert.match(html,/Password/);assert.match(html,/Send me a sign-in link/)
+ assert.match(html,/Email link/);assert.match(html,/Password/);assert.match(html,/Continue with email/)
  assert.match(html,/autocomplete="email"/);assert.doesNotMatch(html,/Identity|Cipher|Authorized Personnel/)
 })
 test('upload presents country suggestions, artist ownership and numeric size fields',async()=>{
@@ -69,4 +70,17 @@ test('upload presents country suggestions, artist ownership and numeric size fie
 test('artist collection offers country, price and length filters',async()=>{
  const html=await render('ArtManager',{path:'/admin/artworks',profile:{name:'Maya'},artworks:[artwork]})
  for(const label of ['Country','Minimum price','Maximum price','Minimum length','Maximum length']) assert.ok(html.includes(label))
+})
+
+test('artist email access clearly supports signing in and creating an account',async()=>{
+ const html=await render('AdminLogin',{path:'/admin/login',user:null})
+ assert.match(html,/Sign in or sign up/)
+ assert.match(html,/Continue with email/)
+ assert.match(html,/creates your account/)
+})
+test('collector email access clearly supports signing in and creating an account',async()=>{
+ const html=await render('Login',{path:'/login',user:null})
+ assert.match(html,/Sign in or sign up/)
+ assert.match(html,/Continue with email/)
+ assert.match(html,/artist/)
 })

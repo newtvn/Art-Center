@@ -1862,3 +1862,5 @@ button:disabled{cursor:wait;opacity:.55}
 .filter-error { color: #9d3526; font-size: 13px; margin-top: 12px; }
 @media(max-width: 1000px) { .artwork-filter-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; } }
 @media(max-width: 600px) { .brand-logo { width: 162px; } .artwork-filter-grid { grid-template-columns: minmax(0,1fr); gap: 20px; } .artwork-filter-note { flex-direction: column; gap: 10px; align-items: flex-start; } }
+.collector-artist-help { margin-top: 28px; font-size: 13px; color: var(--muted); line-height: 1.8; }
+.collector-artist-help .text-link { display: inline; }

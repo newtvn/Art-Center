@@ -41,9 +41,9 @@ onUnmounted(() => { document.removeEventListener('pointerdown', outside); docume
         <RouterLink to="/gallery" class="menu-primary">The gallery <span>↗</span></RouterLink>
         <div class="menu-categories"><RouterLink v-for="category in categories.slice(1)" :key="category" :to="{name:'gallery', query:{category}}">{{ category }}</RouterLink></div>
         <RouterLink to="/artists" class="menu-primary">The artists <span>↗</span></RouterLink>
-        <RouterLink v-if="!user" to="/login" class="menu-primary">Collector sign-in <span>↗</span></RouterLink>
+        <RouterLink v-if="!user" to="/login" class="menu-primary">Collector sign-in / sign-up <span>↗</span></RouterLink>
         <button v-else class="menu-studio" @click="signOut">Sign out</button>
-        <RouterLink to="/admin/login" class="menu-studio">Artist sign-in <span>↗</span></RouterLink>
+        <RouterLink to="/admin/login" class="menu-studio">Artist sign-in / sign-up <span>↗</span></RouterLink>
       </nav>
     </Transition>
   </header>
